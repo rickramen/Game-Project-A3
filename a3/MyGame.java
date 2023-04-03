@@ -105,7 +105,7 @@ public class MyGame extends VariableFrameRateGame
 		manHgtx = new TextureImage("hg.png");
 		doltx = new TextureImage("Dolphin_HighPolyUV.png");
 		cubtx = new TextureImage("treasure.png");
-		spheretx = new TextureImage("sob.png");
+		spheretx = new TextureImage("drink.png");
 		tortx = new TextureImage("donut.png");
 		
 		miniCubtx = new TextureImage("treasure.png");
