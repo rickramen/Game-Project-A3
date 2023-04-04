@@ -9,6 +9,7 @@ import tage.input.action.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.*;
 import javax.swing.*;
 import org.joml.*;
 
@@ -19,20 +20,31 @@ import java.util.Random;
 import net.java.games.input.*; 
 import net.java.games.input.Component.Identifier.*; 
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.Invocable;
+
+
 public class MyGame extends VariableFrameRateGame
 {
 	private static Engine engine;
 	private InputManager im;
 	private NodeController rc, bc;
 
+	// ----- Scripts -----
+	private File scriptFile1;
+	private long fileLastModifiedTime = 0;
+	ScriptEngine jsEngine;
+
+	// ---- Camera ----
 	private Camera cam;
 	private Camera vpCam;
-
 	private CameraOrbit3D orbitController;
 
 	private Vector3f right;
 	private boolean onDolphin = true;
-	private int scoreCounter = 0;
 	private double lastFrameTime, currFrameTime, elapsTime;
 
 	private boolean isAxesOn = true;
@@ -41,6 +53,7 @@ public class MyGame extends VariableFrameRateGame
 	private boolean isTorusAlive = true;
 	private boolean isResetToggled = false;
 
+	private int scoreCounter = 0;
 	private Light light1;
 
 	// ---- GameObject Declarations ----
@@ -119,6 +132,7 @@ public class MyGame extends VariableFrameRateGame
 		Matrix4f initialTranslation, initialScale;
 		Random rand = new Random();
 
+		
 		// build ground plane
 		ground = new GameObject(GameObject.root(), groundS, groundtx);
 		ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
@@ -136,6 +150,7 @@ public class MyGame extends VariableFrameRateGame
 		dol = new GameObject(GameObject.root(), dolS, doltx);
 		initialTranslation = (new Matrix4f()).translation(0,1,0);
 		initialScale = (new Matrix4f()).scaling(3.0f);
+			
 		dol.setLocalTranslation(initialTranslation);
 		dol.setLocalScale(initialScale);
 
@@ -227,6 +242,19 @@ public class MyGame extends VariableFrameRateGame
 	@Override
 	public void initializeGame()
 	{	
+		// Initialize JavaScript engine
+		ScriptEngineManager factory = new ScriptEngineManager();
+		jsEngine = factory.getEngineByName("js");
+
+		// Initialize paramters in InitParams.js
+		scriptFile1 = new File ("assets/scripts/InitParams.js");
+		this.runScript(scriptFile1);
+
+		System.out.println(
+			((Integer)jsEngine.get("test")).intValue()
+		);
+	
+
 		(engine.getRenderSystem()).setWindowDimensions(1900,1000);
 
 		lastFrameTime = System.currentTimeMillis();
@@ -426,6 +454,31 @@ public class MyGame extends VariableFrameRateGame
 
 		//positionCameraBehindAvatar();
 		orbitController.updateCameraPosition();
+	}
+
+	private void runScript(File scriptFile)
+	{
+		try
+		{
+			FileReader fileReader = new FileReader(scriptFile);
+			jsEngine.eval(fileReader);
+			fileReader.close();
+		}
+		catch(FileNotFoundException e1)
+		{
+			System.out.println(scriptFile + " not found " + e1); }
+	    catch (IOException e2)
+		{
+           	System.out.println("IO problem with " + scriptFile + e2); 
+		}
+	    catch (ScriptException e3)
+		{ 
+           	System.out.println("ScriptException in " + scriptFile + e3); 
+		}
+	    catch (NullPointerException e4)
+		{ 
+            System.out.println ("Null ptr exception reading " + scriptFile + e4);
+		}
 	}
 
 	// Toggles render for Line axes
