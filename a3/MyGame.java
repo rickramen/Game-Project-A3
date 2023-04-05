@@ -53,6 +53,8 @@ public class MyGame extends VariableFrameRateGame
 	private boolean isTorusAlive = true;
 	private boolean isResetToggled = false;
 
+	private int lakeIslands;
+
 	private int scoreCounter = 0;
 	private Light light1;
 
@@ -124,6 +126,13 @@ public class MyGame extends VariableFrameRateGame
 		miniCubtx = new TextureImage("treasure.png");
 		miniSpheretx = new TextureImage("drink.png");
 		miniTortx = new TextureImage("donut.png");
+	}
+
+	@Override
+	public void loadSkyBoxes(){
+		lakeIslands = (engine.getSceneGraph()).loadCubeMap("lakeIslands");
+		(engine.getSceneGraph()).setActiveSkyBoxTexture(lakeIslands);
+		(engine.getSceneGraph()).setSkyBoxEnabled(true);
 	}
 
 	@Override
