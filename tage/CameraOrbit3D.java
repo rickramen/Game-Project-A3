@@ -38,7 +38,7 @@ public class CameraOrbit3D {
         InputManager im = engine.getInputManager();
         OrbitAzimuthAction azmAction = new OrbitAzimuthAction();
         OrbitAzimuthLeftAction azmLeftAction = new OrbitAzimuthLeftAction();
-        OrbitAzimuthLeftAction azmRightAction = new OrbitAzimuthLeftAction();
+        OrbitAzimuthRightAction azmRightAction = new OrbitAzimuthRightAction();
         OrbitElevationAction elevAction = new OrbitElevationAction();
         OrbitElevationUpAction elevUpAction = new OrbitElevationUpAction();
         OrbitElevationDownAction elevDownAction = new OrbitElevationDownAction();

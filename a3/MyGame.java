@@ -62,9 +62,10 @@ public class MyGame extends VariableFrameRateGame
 	private GameObject x, y, z;
 	private ObjShape linxS, linyS, linzS;
 
-	private GameObject ground;
-	private ObjShape groundS;
-	private TextureImage groundtx;
+	private GameObject terr;
+	private ObjShape terrS;
+	private TextureImage terrtx;
+	private TextureImage hills;
 
 	private GameObject dol;
 	private ObjShape dolS;
@@ -98,7 +99,7 @@ public class MyGame extends VariableFrameRateGame
   		linyS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,3f,0f)); 
   		linzS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,0f,-3f));
 
-		groundS = new Plane();
+		terrS = new TerrainPlane(1000);
 
 		dolS = new ImportedModel("dolphinHighPoly.obj");
 
@@ -116,13 +117,13 @@ public class MyGame extends VariableFrameRateGame
 	@Override
 	public void loadTextures()
 	{	
-		groundtx = new TextureImage("ground.png");
 		manHgtx = new TextureImage("hg.png");
 		doltx = new TextureImage("Dolphin_HighPolyUV.png");
 		cubtx = new TextureImage("treasure.png");
 		spheretx = new TextureImage("sob.png");
 		tortx = new TextureImage("donut.png");
-		
+		terrtx = new TextureImage("terrain.png");
+		hills = new TextureImage("heightmap.png");
 		miniCubtx = new TextureImage("treasure.png");
 		miniSpheretx = new TextureImage("drink.png");
 		miniTortx = new TextureImage("donut.png");
@@ -142,10 +143,13 @@ public class MyGame extends VariableFrameRateGame
 		Random rand = new Random();
 
 		
-		// build ground plane
-		ground = new GameObject(GameObject.root(), groundS, groundtx);
-		ground.setLocalTranslation((new Matrix4f()).translation(0,0,0));
-		ground.setLocalScale((new Matrix4f()).scaling(100.0f));
+		// build terrain
+		terr = new GameObject(GameObject.root(), terrS, terrtx);
+		initialTranslation = (new Matrix4f().translation(0f,0f,0f));
+		terr.setLocalTranslation(initialTranslation);
+		initialScale = (new Matrix4f().scaling(1f,1f,1f));
+		terr.setLocalScale(initialScale);
+		terr.setHeightMap(hills);
 
 		// build the world X, Y, Z axes to show origin
 		x = new GameObject(GameObject.root(), linxS); 
@@ -463,6 +467,11 @@ public class MyGame extends VariableFrameRateGame
 
 		//positionCameraBehindAvatar();
 		orbitController.updateCameraPosition();
+
+		//update altitude of dolphin based on height map
+		Vector3f loc = dol.getWorldLocation();
+		float height = terr.getHeight(loc.x(), loc.z());
+		dol.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
 	}
 
 	private void runScript(File scriptFile)
