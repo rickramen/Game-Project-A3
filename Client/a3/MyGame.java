@@ -120,7 +120,7 @@ public class MyGame extends VariableFrameRateGame
   		linyS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,3f,0f)); 
   		linzS = new Line(new Vector3f(0f,0f,0f), new Vector3f(0f,0f,-3f));
 
-		terrS = new TerrainPlane(1000);
+		terrS = new TerrainPlane(1500);
 
 		dolS = new ImportedModel("dolphinHighPoly.obj");
 		ghostS = new Sphere();
@@ -177,7 +177,7 @@ public class MyGame extends VariableFrameRateGame
 		terr = new GameObject(GameObject.root(), terrS, terrtx);
 		initialTranslation = (new Matrix4f().translation(0f,0f,0f));
 		terr.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f().scaling(1f,1f,1f));
+		initialScale = (new Matrix4f().scaling(30f,1f,30f));
 		terr.setLocalScale(initialScale);
 		terr.setHeightMap(hills);
 
