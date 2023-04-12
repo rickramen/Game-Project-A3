@@ -73,10 +73,11 @@ public class MyGame extends VariableFrameRateGame
 	private TextureImage hills;
 
 	private GameObject avatar;
-	private ObjShape dolS, ghostS, zombieS;
+	private ObjShape dolS, ghostS, zombieS, robotS;
 	private TextureImage doltx, ghostT, zombietx;
+	private TextureImage robottx;
 
-	private GameObject cub, sphere, tor, manHg;
+	private GameObject cub, sphere, tor, manHg, robot;
 	private ObjShape cubS, sphereS, torS, manHgS;
 	private TextureImage cubtx, spheretx, tortx, manHgtx;
 
@@ -124,7 +125,8 @@ public class MyGame extends VariableFrameRateGame
 
 		cubS = new Cube();
 		sphereS = new Sphere();
-		torS = new Torus();
+	
+		robotS = new ImportedModel("robot2.obj");
 
 	}
 
@@ -140,6 +142,7 @@ public class MyGame extends VariableFrameRateGame
 		tortx = new TextureImage("donut.png");
 		terrtx = new TextureImage("sob.png");
 		hills = new TextureImage("heightmap.png");
+		robottx = new TextureImage("robotunwraped.png");
 	}
 
 	@Override
@@ -210,15 +213,15 @@ public class MyGame extends VariableFrameRateGame
   		sphere.setLocalScale(initialScale); 
 
 		// build torus 
-		tor = new GameObject(GameObject.root(), torS, tortx); 
-		tor.getRenderStates().setTiling(1);
+		robot = new GameObject(GameObject.root(), robotS, robottx); 
+		robot.getRenderStates().setTiling(1);
 		initialTranslation = (new Matrix4f()).translation(
 			setRandomLocation(), 
 			1, 
 			setRandomLocation());
-  		tor.setLocalTranslation(initialTranslation); 
+  		robot.setLocalTranslation(initialTranslation); 
   		initialScale = (new Matrix4f()).scaling(0.75f); 
-  		tor.setLocalScale(initialScale); 
+  		robot.setLocalScale(initialScale); 
 
 	}
 
@@ -424,10 +427,6 @@ public class MyGame extends VariableFrameRateGame
 		}else if(avatar.getLocalLocation().distance(sphere.getLocalLocation()) < 1.2 && isSphereAlive){
 			isSphereAlive = false;
 			rc.addTarget(sphere);
-			scoreCounter++;
-		}else if(avatar.getLocalLocation().distance(tor.getLocalLocation()) < 1.2 && isTorusAlive){
-			isTorusAlive = false;
-			rc.addTarget(tor);
 			scoreCounter++;
 		}else if(avatar.getLocalLocation().distance(manHg.getLocalLocation()) < 1.2){
 			isResetToggled = true;
