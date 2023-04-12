@@ -51,7 +51,7 @@ public class MyGame extends VariableFrameRateGame
 	private Camera vpCam;
 	private CameraOrbit3D orbitController;
 
-	private double startTime, prevTime, elapsedTime, amt;
+	private double startTime, prevTime, elapsedTime, deltaTime;
 	private int scoreCounter = 0;
 
 	private boolean isAxesOn = true;
@@ -73,19 +73,13 @@ public class MyGame extends VariableFrameRateGame
 	private TextureImage hills;
 
 	private GameObject avatar;
-	private ObjShape dolS, ghostS;
-	private TextureImage doltx, ghostT;
+	private ObjShape dolS, ghostS, zombieS;
+	private TextureImage doltx, ghostT, zombietx;
 
-	// Prizes
 	private GameObject cub, sphere, tor, manHg;
 	private ObjShape cubS, sphereS, torS, manHgS;
 	private TextureImage cubtx, spheretx, tortx, manHgtx;
 
-	// Mini Prizes
-	ArrayList<GameObject> miniPrizeList;
-	private GameObject miniCub, miniSphere, miniTor;
-	private ObjShape miniCubS, miniSphereS, miniTorS;
-	private TextureImage miniCubtx, miniSpheretx, miniTortx;
 
 	// Server
 	private String serverAddress;
@@ -123,6 +117,7 @@ public class MyGame extends VariableFrameRateGame
 		terrS = new TerrainPlane(1500);
 
 		dolS = new ImportedModel("dolphinHighPoly.obj");
+		zombieS = new ImportedModel("zombie.obj");
 		ghostS = new Sphere();
 
 		manHgS = new ManualHourglass();
@@ -131,9 +126,6 @@ public class MyGame extends VariableFrameRateGame
 		sphereS = new Sphere();
 		torS = new Torus();
 
-		miniCubS = new Cube();
-		miniSphereS = new Sphere();
-		miniTorS = new Torus();
 	}
 
 	@Override
@@ -141,15 +133,13 @@ public class MyGame extends VariableFrameRateGame
 	{	
 		manHgtx = new TextureImage("hg.png");
 		doltx = new TextureImage("Dolphin_HighPolyUV.png");
+		zombietx = new TextureImage("zombie.png");
 		ghostT = new TextureImage("sob.png");
 		cubtx = new TextureImage("treasure.png");
 		spheretx = new TextureImage("sob.png");
 		tortx = new TextureImage("donut.png");
 		terrtx = new TextureImage("sob.png");
 		hills = new TextureImage("heightmap.png");
-		miniCubtx = new TextureImage("treasure.png");
-		miniSpheretx = new TextureImage("drink.png");
-		miniTortx = new TextureImage("donut.png");
 	}
 
 	@Override
@@ -181,8 +171,8 @@ public class MyGame extends VariableFrameRateGame
 		terr.setLocalScale(initialScale);
 		terr.setHeightMap(hills);
 
-		// build dolphin avatar
-		avatar = new GameObject(GameObject.root(), dolS, doltx);
+		// build avatar
+		avatar = new GameObject(GameObject.root(), zombieS, zombietx);
 		initialTranslation = (new Matrix4f()).translation(0,1,0);
 		initialScale = (new Matrix4f()).scaling(3.0f);	
 		avatar.setLocalTranslation(initialTranslation);
@@ -199,7 +189,7 @@ public class MyGame extends VariableFrameRateGame
 		manHg.setLocalScale(initialScale);
 		manHg.getRenderStates().hasLighting(true);
 
-		// build cube prize
+		// build cube 
 		cub = new GameObject(GameObject.root(), cubS, cubtx); 
 		initialTranslation = (new Matrix4f()).translation(
 			setRandomLocation(), 
@@ -209,7 +199,7 @@ public class MyGame extends VariableFrameRateGame
 		initialScale = (new Matrix4f()).scaling(0.5f); 
   		cub.setLocalScale(initialScale); 
 
-		// build sphere prize
+		// build sphere 
 		sphere = new GameObject(GameObject.root(), sphereS, spheretx);
 		initialTranslation = (new Matrix4f()).translation(
 			setRandomLocation(), 
@@ -219,7 +209,7 @@ public class MyGame extends VariableFrameRateGame
 		initialScale = (new Matrix4f()).scaling(0.5f); 
   		sphere.setLocalScale(initialScale); 
 
-		// build torus prize
+		// build torus 
 		tor = new GameObject(GameObject.root(), torS, tortx); 
 		tor.getRenderStates().setTiling(1);
 		initialTranslation = (new Matrix4f()).translation(
@@ -230,36 +220,6 @@ public class MyGame extends VariableFrameRateGame
   		initialScale = (new Matrix4f()).scaling(0.75f); 
   		tor.setLocalScale(initialScale); 
 
-		// build mini prizes
-		miniCub = new GameObject(GameObject.root(), miniCubS, miniCubtx);
-		initialTranslation = (new Matrix4f()).translation(0,0,-1);
-		initialScale = (new Matrix4f()).scaling(0.05f); 
-		miniCub.setLocalTranslation(initialTranslation);
-		miniCub.setLocalScale(initialScale);
-
-		miniSphere = new GameObject(GameObject.root(), miniSphereS, miniSpheretx);
-		initialTranslation = (new Matrix4f()).translation(-1,0,0);
-		initialScale = (new Matrix4f()).scaling(0.05f); 
-		miniSphere.setLocalTranslation(initialTranslation);
-		miniSphere.setLocalScale(initialScale);
-
-		miniTor = new GameObject(GameObject.root(), miniTorS, miniTortx);
-		initialTranslation = (new Matrix4f()).translation(1,0,0);
-		initialScale = (new Matrix4f()).scaling(0.1f); 
-		miniTor.setLocalTranslation(initialTranslation);
-		miniTor.setLocalScale(initialScale);
-
-		miniPrizeList = new ArrayList<GameObject>();
-		miniPrizeList.add(miniCub);
-		miniPrizeList.add(miniSphere);
-		miniPrizeList.add(miniTor);
-
-		// Set hierarchical relationship to avatarphin avatar
-		for(GameObject prize : miniPrizeList){
-			prize.setParent(avatar);
-			prize.propagateTranslation(true);
-			prize.getRenderStates().disableRendering();
-		}
 	}
 
 	@Override
@@ -283,7 +243,7 @@ public class MyGame extends VariableFrameRateGame
 		ScriptEngineManager factory = new ScriptEngineManager();
 		jsEngine = factory.getEngineByName("js");
 
-		// Initialize paramters in InitParams.js
+		// Initialize parameters in InitParams.js
 		scriptFile1 = new File ("assets/scripts/InitParams.js");
 		this.runScript(scriptFile1);
 
@@ -312,9 +272,6 @@ public class MyGame extends VariableFrameRateGame
 		rc.addTarget(manHg);
 		bc.addTarget(manHg);
 
-		for(GameObject prize : miniPrizeList){
-			rc.addTarget(prize);
-		}
 
 		//--------------View Port---------------------
 		(engine.getRenderSystem()).addViewport("VIEWPORT", 0.75f, 0f, 0.25f, 0.25f);	
@@ -417,7 +374,6 @@ public class MyGame extends VariableFrameRateGame
 			net.java.games.input.Component.Identifier.Axis.Button._5, viewportZoomInAction, 
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		
-
 		setupNetworking();
 	}
 
@@ -427,7 +383,7 @@ public class MyGame extends VariableFrameRateGame
 		// Calculate elapsed time
 		elapsedTime = System.currentTimeMillis() - prevTime;
 		prevTime = System.currentTimeMillis();
-		amt = elapsedTime * 0.03;
+		deltaTime = elapsedTime * 0.03;
 		
 
 		//  Build Main HUD
@@ -440,6 +396,7 @@ public class MyGame extends VariableFrameRateGame
 		String dispStr1 = "Score = " + scoreCounterStr;
 		Vector3f hud1Color = new Vector3f(1,0,0);
 		Vector3f hud2Color = new Vector3f(0,0,1);
+		Vector3f hud3Color = new Vector3f(0,1,0);	
 		(engine.getHUDmanager()).setHUD1(dispStr1, 
 										hud1Color, 
 										(int)(mainRelativeLeft * mainActualWidth + 10), 
@@ -453,10 +410,9 @@ public class MyGame extends VariableFrameRateGame
 
 		String avatarPos = (int)avatar.getWorldLocation().x() + ", " +
 						(int)avatar.getWorldLocation().y() + ", " +
-						(int)avatar.getWorldLocation().z();
-		Vector3f hud3Color = new Vector3f(0,1,0);					
+						(int)avatar.getWorldLocation().z();				
 		(engine.getHUDmanager()).setHUD2(avatarPos, 
-										hud3Color,
+										hud2Color,
 										(int)(vpRelativeLeft * mainActualWidth + 10),
 										(int)(vpRelativeBottom * vpActualHeight + 10));
 
@@ -464,17 +420,14 @@ public class MyGame extends VariableFrameRateGame
 		if(avatar.getLocalLocation().distance(cub.getLocalLocation()) < 1.2 && isCubeAlive){
 			isCubeAlive = false;
 			rc.addTarget(cub);
-			miniCub.getRenderStates().enableRendering();
 			scoreCounter++;
 		}else if(avatar.getLocalLocation().distance(sphere.getLocalLocation()) < 1.2 && isSphereAlive){
 			isSphereAlive = false;
 			rc.addTarget(sphere);
-			miniSphere.getRenderStates().enableRendering();
 			scoreCounter++;
 		}else if(avatar.getLocalLocation().distance(tor.getLocalLocation()) < 1.2 && isTorusAlive){
 			isTorusAlive = false;
 			rc.addTarget(tor);
-			miniTor.getRenderStates().enableRendering();
 			scoreCounter++;
 		}else if(avatar.getLocalLocation().distance(manHg.getLocalLocation()) < 1.2){
 			isResetToggled = true;
@@ -482,7 +435,7 @@ public class MyGame extends VariableFrameRateGame
 			resetController();
 		}
 		
-		//update altitude of avatarphin based on height map
+		// Update altitude of avatar based on height map
 		Vector3f loc = avatar.getWorldLocation();
 		float height = terr.getHeight(loc.x(), loc.z());
 		avatar.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
@@ -490,6 +443,14 @@ public class MyGame extends VariableFrameRateGame
 		im.update((float)elapsedTime);
 		orbitController.updateCameraPosition();
 		processNetworking((float)elapsedTime);
+	}
+
+
+	// Generates random number between -10 and 10 for loc coords
+	private int setRandomLocation(){
+		Random r = new Random();
+		int randomNum = r.nextInt(10 + 10) - 10;
+		return randomNum;
 	}
 
 	// Toggles render for Line axes
@@ -508,20 +469,6 @@ public class MyGame extends VariableFrameRateGame
 		}
 	}
 
-	// Getter for avatarphin avatar
-	public GameObject getAvatar(){return avatar;}
-
-	// Getter for game camera
-	public Camera getCamera(){
-		return engine.getRenderSystem().getViewport("MAIN").getCamera();
-	}
-	
-	// Getter Viewport camera
-	public Camera getViewportCamera(){
-		return engine.getRenderSystem().getViewport("VIEWPORT").getCamera();
-	}
-
-
 	// Reset controller by removing targets
 	public void resetController(){
 		rc.removeTarget(cub);
@@ -529,18 +476,8 @@ public class MyGame extends VariableFrameRateGame
 		rc.removeTarget(tor);
 	}
 	
-	// Generates random number between -10 and 10 for loc coords
-	private int setRandomLocation(){
-		Random r = new Random();
-		int randomNum = r.nextInt(10 + 10) - 10;
-		return randomNum;
-	}
-
 	// Resets gameObjects status and positions
-	private void resetPrizes(){
-		for(GameObject prize : miniPrizeList){
-			prize.getRenderStates().disableRendering();
-		}
+	private void resetPrizes(){	
 
 		manHg.setLocalTranslation(new Matrix4f().translation(
 			setRandomLocation(), 
@@ -624,8 +561,6 @@ public class MyGame extends VariableFrameRateGame
 			protClient.processPackets();
 	}
 
-	public Vector3f getPlayerPosition() { return avatar.getWorldLocation(); }
-
 	public void setIsConnected(boolean value) { this.isClientConnected = value; }
 	
 	private class SendCloseConnectionPacketAction extends AbstractInputAction
@@ -635,6 +570,26 @@ public class MyGame extends VariableFrameRateGame
 			{	protClient.sendByeMessage();
 			}
 		}
+	}
+
+	//--------------------- GETTERS -------------
+
+	public GameObject getAvatar(){return avatar;}
+
+	public Camera getCamera(){
+		return engine.getRenderSystem().getViewport("MAIN").getCamera();
+	}
+		
+	public Camera getViewportCamera(){
+		return engine.getRenderSystem().getViewport("VIEWPORT").getCamera();
+	}
+	
+	public Vector3f getPlayerPosition() { 
+		return avatar.getWorldLocation();
+	}
+
+	public double getDeltaTime(){
+		return this.deltaTime;
 	}
 }
 
