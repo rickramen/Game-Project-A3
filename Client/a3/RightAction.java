@@ -10,10 +10,10 @@ public class RightAction extends AbstractInputAction{
     private GameObject av; 
     private ProtocolClient protClient;
    
-    public RightAction(MyGame g) 
+    public RightAction(MyGame g, ProtocolClient p) 
     { 
         game = g; 
-        //protClient = p;
+        protClient = p;
     } 
 
     @Override 
@@ -21,7 +21,7 @@ public class RightAction extends AbstractInputAction{
     {
         av = game.getAvatar();
         av.yaw(-0.01f);
-       // protClient.sendMoveMessage(av.getWorldLocation());
+        protClient.sendMoveMessage(av.getWorldLocation());
     }
    
 }

@@ -10,10 +10,10 @@ public class TurnAction extends AbstractInputAction{
     private GameObject av; 
     private ProtocolClient protClient;
  
-    public TurnAction(MyGame g) 
+    public TurnAction(MyGame g, ProtocolClient p) 
     { 
         game = g; 
-        //protClient = p;
+        protClient = p;
     } 
 
     @Override 
@@ -32,6 +32,6 @@ public class TurnAction extends AbstractInputAction{
         else {
             av.yaw(-0.01f);
         }    
-       // protClient.sendMoveMessage(av.getWorldLocation()); 
+        protClient.sendMoveMessage(av.getWorldLocation()); 
     }
 }

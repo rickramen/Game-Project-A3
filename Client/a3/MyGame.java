@@ -55,10 +55,6 @@ public class MyGame extends VariableFrameRateGame
 	private int scoreCounter = 0;
 
 	private boolean isAxesOn = true;
-	private boolean isCubeAlive = true;
-	private boolean isSphereAlive = true;
-	private boolean isTorusAlive = true;
-	private boolean isResetToggled = false;
 
 	private int lakeIslands;
 	private Light light1;
@@ -72,14 +68,13 @@ public class MyGame extends VariableFrameRateGame
 	private TextureImage terrtx;
 	private TextureImage hills;
 
-	private GameObject avatar;
-	private ObjShape dolS, ghostS, zombieS, robotS;
-	private TextureImage doltx, ghostT, zombietx;
-	private TextureImage robottx;
+	private GameObject avatar, zombie;
+	private ObjShape ghostS, zombieS, robotS;
+	private TextureImage ghostT, zombietx, robottx;
 
-	private GameObject cub, sphere, tor, manHg, robot;
-	private ObjShape cubS, sphereS, torS, manHgS;
-	private TextureImage cubtx, spheretx, tortx, manHgtx;
+	private GameObject sphere;
+	private ObjShape  sphereS;
+	private TextureImage spheretx;
 
 
 	// Server
@@ -117,32 +112,24 @@ public class MyGame extends VariableFrameRateGame
 
 		terrS = new TerrainPlane(1500);
 
-		dolS = new ImportedModel("dolphinHighPoly.obj");
 		zombieS = new ImportedModel("zombie.obj");
-		ghostS = new Sphere();
+		robotS = new ImportedModel("robot2.obj");
+		ghostS = new ImportedModel("zombie.obj");
 
-		manHgS = new ManualHourglass();
-
-		cubS = new Cube();
 		sphereS = new Sphere();
 	
-		robotS = new ImportedModel("robot2.obj");
-
 	}
 
 	@Override
 	public void loadTextures()
 	{	
-		manHgtx = new TextureImage("hg.png");
-		doltx = new TextureImage("Dolphin_HighPolyUV.png");
 		zombietx = new TextureImage("zombie.png");
+		robottx = new TextureImage("robotunwraped.png");
 		ghostT = new TextureImage("sob.png");
-		cubtx = new TextureImage("treasure.png");
 		spheretx = new TextureImage("sob.png");
-		tortx = new TextureImage("donut.png");
 		terrtx = new TextureImage("sob.png");
 		hills = new TextureImage("heightmap.png");
-		robottx = new TextureImage("robotunwraped.png");
+
 	}
 
 	@Override
@@ -175,32 +162,12 @@ public class MyGame extends VariableFrameRateGame
 		terr.setHeightMap(hills);
 
 		// build avatar
-		avatar = new GameObject(GameObject.root(), zombieS, zombietx);
+		avatar = new GameObject(GameObject.root(), robotS, robottx);
 		initialTranslation = (new Matrix4f()).translation(0,1,0);
-		initialScale = (new Matrix4f()).scaling(3.0f);	
+		initialScale = (new Matrix4f()).scaling(0.5f);	
 		avatar.setLocalTranslation(initialTranslation);
 		avatar.setLocalScale(initialScale);
 
-		// build manual hourglass shape
-		manHg = new GameObject(GameObject.root(), manHgS, manHgtx);
-		initialTranslation = (new Matrix4f()).translation(
-			setRandomLocation(), 
-			1, 
-			setRandomLocation());
-		manHg.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(0.35f);
-		manHg.setLocalScale(initialScale);
-		manHg.getRenderStates().hasLighting(true);
-
-		// build cube 
-		cub = new GameObject(GameObject.root(), cubS, cubtx); 
-		initialTranslation = (new Matrix4f()).translation(
-			setRandomLocation(), 
-			1, 
-			setRandomLocation());
-  		cub.setLocalTranslation(initialTranslation); 
-		initialScale = (new Matrix4f()).scaling(0.5f); 
-  		cub.setLocalScale(initialScale); 
 
 		// build sphere 
 		sphere = new GameObject(GameObject.root(), sphereS, spheretx);
@@ -212,16 +179,15 @@ public class MyGame extends VariableFrameRateGame
 		initialScale = (new Matrix4f()).scaling(0.5f); 
   		sphere.setLocalScale(initialScale); 
 
-		// build torus 
-		robot = new GameObject(GameObject.root(), robotS, robottx); 
-		robot.getRenderStates().setTiling(1);
+		// build zombie
+		zombie = new GameObject(GameObject.root(), zombieS, zombietx); 
 		initialTranslation = (new Matrix4f()).translation(
 			setRandomLocation(), 
 			1, 
 			setRandomLocation());
-  		robot.setLocalTranslation(initialTranslation); 
+  		zombie.setLocalTranslation(initialTranslation); 
   		initialScale = (new Matrix4f()).scaling(0.75f); 
-  		robot.setLocalScale(initialScale); 
+  		zombie.setLocalScale(initialScale); 
 
 	}
 
@@ -272,8 +238,8 @@ public class MyGame extends VariableFrameRateGame
 		rc.toggle();
 		bc.toggle();
 
-		rc.addTarget(manHg);
-		bc.addTarget(manHg);
+		rc.addTarget(sphere);
+		bc.addTarget(sphere);
 
 
 		//--------------View Port---------------------
@@ -296,12 +262,14 @@ public class MyGame extends VariableFrameRateGame
 		//--------- INPUTS SECTION------------
 		im = engine.getInputManager(); 
 		
-		FwdAction fwdAction = new FwdAction(this);
-		BwdAction bwdAction = new BwdAction(this);
-		LeftAction leftAction = new LeftAction(this);
-		RightAction rightAction = new RightAction(this);
-		FwdBwdAction fwdBwdAction = new FwdBwdAction(this);
-		TurnAction turnAction = new TurnAction(this);
+		setupNetworking();
+		
+		FwdAction fwdAction = new FwdAction(this, protClient);
+		BwdAction bwdAction = new BwdAction(this, protClient);
+		LeftAction leftAction = new LeftAction(this, protClient);
+		RightAction rightAction = new RightAction(this, protClient);
+		FwdBwdAction fwdBwdAction = new FwdBwdAction(this, protClient);
+		TurnAction turnAction = new TurnAction(this, protClient);
 
 		ToggleAxesAction toggleAxesAction = new ToggleAxesAction(this); 
 
@@ -377,7 +345,6 @@ public class MyGame extends VariableFrameRateGame
 			net.java.games.input.Component.Identifier.Axis.Button._5, viewportZoomInAction, 
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		
-		setupNetworking();
 	}
 
 	@Override
@@ -419,21 +386,7 @@ public class MyGame extends VariableFrameRateGame
 										(int)(vpRelativeLeft * mainActualWidth + 10),
 										(int)(vpRelativeBottom * vpActualHeight + 10));
 
-		// Collect item and increase score when camera is within range
-		if(avatar.getLocalLocation().distance(cub.getLocalLocation()) < 1.2 && isCubeAlive){
-			isCubeAlive = false;
-			rc.addTarget(cub);
-			scoreCounter++;
-		}else if(avatar.getLocalLocation().distance(sphere.getLocalLocation()) < 1.2 && isSphereAlive){
-			isSphereAlive = false;
-			rc.addTarget(sphere);
-			scoreCounter++;
-		}else if(avatar.getLocalLocation().distance(manHg.getLocalLocation()) < 1.2){
-			isResetToggled = true;
-			resetPrizes();
-			resetController();
-		}
-		
+			
 		// Update altitude of avatar based on height map
 		Vector3f loc = avatar.getWorldLocation();
 		float height = terr.getHeight(loc.x(), loc.z());
@@ -468,40 +421,7 @@ public class MyGame extends VariableFrameRateGame
 		}
 	}
 
-	// Reset controller by removing targets
-	public void resetController(){
-		rc.removeTarget(cub);
-		rc.removeTarget(sphere);
-		rc.removeTarget(tor);
-	}
 	
-	// Resets gameObjects status and positions
-	private void resetPrizes(){	
-
-		manHg.setLocalTranslation(new Matrix4f().translation(
-			setRandomLocation(), 
-			1, 
-			setRandomLocation()));
-
-		isCubeAlive = true;
-		cub.setLocalTranslation(new Matrix4f().translation(
-			setRandomLocation(), 
-			1, 
-			setRandomLocation()));
-	
-		isSphereAlive = true;
-		sphere.setLocalTranslation(new Matrix4f().translation(
-			setRandomLocation(), 
-			1, 
-			setRandomLocation()));
-		
-		isTorusAlive = true;
-		tor.setLocalTranslation(new Matrix4f().translation(
-			setRandomLocation(), 
-			1, 
-			setRandomLocation()));
-	}
-
 	// --------- SCRIPTING -----------
 	private void runScript(File scriptFile)
 	{

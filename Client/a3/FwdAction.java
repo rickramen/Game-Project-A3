@@ -12,10 +12,10 @@ public class FwdAction extends AbstractInputAction{
     private Vector4f fwdDirection; 
     private ProtocolClient protClient;
 
-    public FwdAction(MyGame g) 
+    public FwdAction(MyGame g, ProtocolClient p) 
     { 
         game = g; 
-        //protClient = p;
+        protClient = p;
     } 
 
     @Override 
@@ -28,6 +28,6 @@ public class FwdAction extends AbstractInputAction{
         fwdDirection.mul(0.02f);
         newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z()); 
         av.setLocalLocation(newPosition);  
-       // protClient.sendMoveMessage(av.getWorldLocation());
+        protClient.sendMoveMessage(av.getWorldLocation());
     } 
 }
