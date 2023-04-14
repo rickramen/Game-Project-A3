@@ -52,12 +52,13 @@ public class MyGame extends VariableFrameRateGame
 	private CameraOrbit3D orbitController;
 
 	private double startTime, prevTime, elapsedTime, deltaTime;
-	private int scoreCounter = 0;
+	private int health = 0;
 
-	private boolean isAxesOn = true;
-
+	private boolean isAxesOn;
 	private int lakeIslands;
 	private Light light1;
+
+	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
 
 	// ---- GameObject Declarations ----
 	private GameObject x, y, z;
@@ -147,6 +148,21 @@ public class MyGame extends VariableFrameRateGame
 		Matrix4f initialTranslation, initialScale;
 		Random rand = new Random();
 
+		// Initialize JavaScript engine
+		ScriptEngineManager factory = new ScriptEngineManager();
+		jsEngine = factory.getEngineByName("js");
+
+		// Initialize parameters in InitParams.js
+		scriptFile1 = new File ("assets/scripts/InitParams.js");
+		this.runScript(scriptFile1);
+
+		// ScriptEngine variables
+		avatarPosX = ((double)(jsEngine.get("avatarPosX")));
+		avatarPosY = ((double)(jsEngine.get("avatarPosY")));
+		avatarPosZ = ((double)(jsEngine.get("avatarPosZ")));
+		avatarScale = ((double)(jsEngine.get("avatarScale")));
+
+
 		// build the world X, Y, Z axes to show origin
 		x = new GameObject(GameObject.root(), linxS); 
  		y = new GameObject(GameObject.root(), linyS); 
@@ -165,8 +181,8 @@ public class MyGame extends VariableFrameRateGame
 
 		// build avatar
 		avatar = new GameObject(GameObject.root(), robotS, robottx);
-		initialTranslation = (new Matrix4f()).translation(0,1,0);
-		initialScale = (new Matrix4f()).scaling(0.15f);	
+		initialTranslation = (new Matrix4f()).translation((float)avatarPosX, (float)avatarPosY, (float)avatarPosZ);
+		initialScale = (new Matrix4f()).scaling((float)avatarScale);	
 		avatar.setLocalTranslation(initialTranslation);
 		avatar.setLocalScale(initialScale);
 		avatar.getRenderStates().setModelOrientationCorrection(
@@ -219,9 +235,8 @@ public class MyGame extends VariableFrameRateGame
 		scriptFile1 = new File ("assets/scripts/InitParams.js");
 		this.runScript(scriptFile1);
 
-		System.out.println(
-			((Integer)jsEngine.get("test")).intValue()
-		);
+		health = ((int)(jsEngine.get("health")));
+		isAxesOn = ((boolean)(jsEngine.get("isAxesOn")));
 	
 
 		(engine.getRenderSystem()).setWindowDimensions(1900,1000);
@@ -235,7 +250,7 @@ public class MyGame extends VariableFrameRateGame
 		//----------------- Node Controllers -------------------
 		rc = new RotationController(engine, new Vector3f(0,1,0), 0.001f);
 		(engine.getSceneGraph()).addNodeController(rc); 
-		bc = new BounceController(engine);
+		bc = new BounceController(engine, .02f);
 		(engine.getSceneGraph()).addNodeController(bc);
 
 		rc.toggle();
@@ -365,8 +380,8 @@ public class MyGame extends VariableFrameRateGame
         float mainActualWidth = engine.getRenderSystem().getViewport("MAIN").getActualWidth();
         float mainActualHeight = engine.getRenderSystem().getViewport("MAIN").getActualHeight();
 
-		String scoreCounterStr = Integer.toString(scoreCounter);
-		String dispStr1 = "Score = " + scoreCounterStr;
+		String healthCounterStr = Integer.toString(health);
+		String dispStr1 = "Health = " + healthCounterStr;
 		Vector3f hud1Color = new Vector3f(1,0,0);
 		Vector3f hud2Color = new Vector3f(0,0,1);
 		Vector3f hud3Color = new Vector3f(0,1,0);	

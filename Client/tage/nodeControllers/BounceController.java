@@ -20,9 +20,10 @@ public class BounceController extends NodeController
     private Engine engine;
 
     /** Creates bounce controller with specified cycletime */
-    public BounceController(Engine e) { 
+    public BounceController(Engine e, Float br) { 
         super(); 
         engine = e;
+		bounceRate = br;
     }
 
     /** Called by SceneGraph one per frame during display() */
