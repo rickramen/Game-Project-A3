@@ -123,12 +123,14 @@ public class MyGame extends VariableFrameRateGame
 	@Override
 	public void loadTextures()
 	{	
+		terrtx = new TextureImage("foliage.png");
+		hills = new TextureImage("heightmap.png");
+
 		zombietx = new TextureImage("zombie.png");
 		robottx = new TextureImage("robotunwraped.png");
-		ghostT = new TextureImage("sob.png");
+		ghostT = new TextureImage("zombie.png");
 		spheretx = new TextureImage("sob.png");
-		terrtx = new TextureImage("sob.png");
-		hills = new TextureImage("heightmap.png");
+	
 
 	}
 
@@ -164,10 +166,11 @@ public class MyGame extends VariableFrameRateGame
 		// build avatar
 		avatar = new GameObject(GameObject.root(), robotS, robottx);
 		initialTranslation = (new Matrix4f()).translation(0,1,0);
-		initialScale = (new Matrix4f()).scaling(0.5f);	
+		initialScale = (new Matrix4f()).scaling(0.15f);	
 		avatar.setLocalTranslation(initialTranslation);
 		avatar.setLocalScale(initialScale);
-
+		avatar.getRenderStates().setModelOrientationCorrection(
+		(new Matrix4f()).rotationY((float)java.lang.Math.toRadians(180.0f)));
 
 		// build sphere 
 		sphere = new GameObject(GameObject.root(), sphereS, spheretx);
@@ -186,7 +189,7 @@ public class MyGame extends VariableFrameRateGame
 			1, 
 			setRandomLocation());
   		zombie.setLocalTranslation(initialTranslation); 
-  		initialScale = (new Matrix4f()).scaling(0.75f); 
+  		initialScale = (new Matrix4f()).scaling(0.25f); 
   		zombie.setLocalScale(initialScale); 
 
 	}
