@@ -1,5 +1,11 @@
+// Paramters
 var health = 100;
 var isAxesOn = true;
+
+// Node Controller 
+var rotationSpeed = 0.001;
+var bounceSpeed = 0.02
+
 
 // Initial Avatar 
 var avatarPosX = 0.0;

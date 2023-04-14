@@ -60,7 +60,7 @@ public class MyGame extends VariableFrameRateGame
 
 	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
 	private double zombieScale;
-
+	private double rotationSpeed, bounceSpeed;
 	private double terrainLocX, terrainLocY, terrainLocZ, terrainScaleX, terrainScaleY, terrainScaleZ;
 
 
@@ -250,6 +250,9 @@ public class MyGame extends VariableFrameRateGame
 
 		health = ((int)(jsEngine.get("health")));
 		isAxesOn = ((boolean)(jsEngine.get("isAxesOn")));
+		rotationSpeed = ((double)(jsEngine.get("rotationSpeed")));
+		bounceSpeed = ((double)(jsEngine.get("bounceSpeed")));
+	
 	
 
 		(engine.getRenderSystem()).setWindowDimensions(1900,1000);
@@ -261,9 +264,9 @@ public class MyGame extends VariableFrameRateGame
 		orbitController = new CameraOrbit3D(cam, avatar, engine);
 
 		//----------------- Node Controllers -------------------
-		rc = new RotationController(engine, new Vector3f(0,1,0), 0.001f);
+		rc = new RotationController(engine, new Vector3f(0,1,0), (float)rotationSpeed);
 		(engine.getSceneGraph()).addNodeController(rc); 
-		bc = new BounceController(engine, .02f);
+		bc = new BounceController(engine, (float)bounceSpeed);
 		(engine.getSceneGraph()).addNodeController(bc);
 
 		rc.toggle();
