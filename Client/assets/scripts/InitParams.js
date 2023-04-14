@@ -11,10 +11,10 @@ var avatarScale = 0.15;
 var zombieScale = .25;
 
 // Terrain
-var terrainLocX = 0;
-var terrainLocY = 0;
-var terrainLocZ = 0;
+var terrainLocX = 0.0;
+var terrainLocY = 0.0;
+var terrainLocZ = 0.0;
 
-var terrainScaleX = 30;
-var terrainScaleY = 1;
-var terrainScaleZ = 30;
+var terrainScaleX = 30.0;
+var terrainScaleY = 1.0;
+var terrainScaleZ = 30.0;
