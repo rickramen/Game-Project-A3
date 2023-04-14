@@ -19,8 +19,9 @@ public class BounceController extends NodeController
     private float direction = 1.0f;
     private Engine engine;
 
-    /** Creates bounce controller with specified cycletime */
-    public BounceController(Engine e) { 
+    /** Creates bounce controller with specified cycletime 
+     * @param f*/
+    public BounceController(Engine e, float f) { 
         super(); 
         engine = e;
     }

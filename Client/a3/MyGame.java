@@ -52,7 +52,7 @@ public class MyGame extends VariableFrameRateGame
 	private CameraOrbit3D orbitController;
 
 	private double startTime, prevTime, elapsedTime, deltaTime;
-	private int health = 0;
+	private int health;
 
 	private boolean isAxesOn;
 	private int lakeIslands;
