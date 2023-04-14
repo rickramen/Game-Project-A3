@@ -59,6 +59,11 @@ public class MyGame extends VariableFrameRateGame
 	private Light light1;
 
 	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
+	private double zombieScale;
+
+	private double terrainLocX, terrainLocY, terrainLocZ, terrainScaleX, terrainScaleY, terrainScaleZ;
+
+
 
 	// ---- GameObject Declarations ----
 	private GameObject x, y, z;
@@ -161,6 +166,14 @@ public class MyGame extends VariableFrameRateGame
 		avatarPosY = ((double)(jsEngine.get("avatarPosY")));
 		avatarPosZ = ((double)(jsEngine.get("avatarPosZ")));
 		avatarScale = ((double)(jsEngine.get("avatarScale")));
+		zombieScale = ((double)(jsEngine.get("zombieScale")));
+		terrainLocX = ((double)(jsEngine.get("terrainLocX")));
+		terrainLocY= ((double)(jsEngine.get("terrainLocY")));
+		terrainLocZ= ((double)(jsEngine.get("terrainLocZ")));
+		terrainScaleX = ((double)(jsEngine.get("terrainScaleX")));
+		terrainScaleY = ((double)(jsEngine.get("terrainScaleY")));
+		terrainScaleZ = ((double)(jsEngine.get("terrainScaleZ")));
+
 
 
 		// build the world X, Y, Z axes to show origin
@@ -173,9 +186,9 @@ public class MyGame extends VariableFrameRateGame
 		
 		// build terrain
 		terr = new GameObject(GameObject.root(), terrS, terrtx);
-		initialTranslation = (new Matrix4f().translation(0f,0f,0f));
+		initialTranslation = (new Matrix4f().translation((float)terrainLocX,(float)(terrainLocY),(float)(terrainLocZ)));
 		terr.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f().scaling(30f,1f,30f));
+		initialScale = (new Matrix4f().scaling((float)terrainScaleX,(float)terrainScaleY,(float)terrainScaleZ));
 		terr.setLocalScale(initialScale);
 		terr.setHeightMap(hills);
 
@@ -205,7 +218,7 @@ public class MyGame extends VariableFrameRateGame
 			1, 
 			setRandomLocation());
   		zombie.setLocalTranslation(initialTranslation); 
-  		initialScale = (new Matrix4f()).scaling(0.25f); 
+  		initialScale = (new Matrix4f()).scaling((float)zombieScale); 
   		zombie.setLocalScale(initialScale); 
 
 	}
