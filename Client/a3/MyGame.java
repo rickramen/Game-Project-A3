@@ -33,6 +33,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.Invocable;
 
+import tage.physics.PhysicsEngine;
+import tage.physics.PhysicsObject;
+import tage.physics.PhysicsEngineFactory;
+import tage.physics.JBullet.*;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.collision.dispatch.CollisionObject;
+
 
 public class MyGame extends VariableFrameRateGame
 {
@@ -89,7 +96,17 @@ public class MyGame extends VariableFrameRateGame
 	private ProtocolType serverProtocol;
 	private ProtocolClient protClient;
 	private boolean isClientConnected = false;
+
+	// Physics Engine
+	private GameObject grenade1, plane;
+	private ObjShape grenadeS, planeS;
+	private TextureImage grenadetx;
 	
+	private PhysicsEngine physicsEngine;
+	private PhysicsObject grenade1P, planeP;
+
+	private boolean running = true;
+	private float vals[] = new float[16];
 
 	public MyGame(String serverAddress, int serverPort, String protocol)
 	{	super();
@@ -123,6 +140,9 @@ public class MyGame extends VariableFrameRateGame
 		ghostS = new ImportedModel("zombie.obj");
 
 		sphereS = new Sphere();
+
+		grenadeS = new Sphere();
+		planeS = new Plane();
 	
 	}
 
@@ -136,6 +156,8 @@ public class MyGame extends VariableFrameRateGame
 		robottx = new TextureImage("robotunwraped.png");
 		ghostT = new TextureImage("zombie.png");
 		spheretx = new TextureImage("sob.png");
+
+		grenadetx = new TextureImage("grenade.png");
 	
 
 	}
@@ -220,6 +242,15 @@ public class MyGame extends VariableFrameRateGame
   		zombie.setLocalTranslation(initialTranslation); 
   		initialScale = (new Matrix4f()).scaling((float)zombieScale); 
   		zombie.setLocalScale(initialScale); 
+
+		// Test Physics Objects
+		grenade1 = new GameObject(GameObject.root(), grenadeS, grenadetx);
+		grenade1.setLocalTranslation((new Matrix4f()).translation(0,4,0));
+		grenade1.setLocalScale((new Matrix4f()).scaling(.35f));
+
+		plane = new GameObject(GameObject.root(), planeS, spheretx);
+		plane.setLocalTranslation((new Matrix4f()).translation(0, 0, 0));
+		plane.setLocalScale((new Matrix4f()).scaling(.75f));
 
 	}
 
@@ -379,6 +410,32 @@ public class MyGame extends VariableFrameRateGame
 			net.java.games.input.Component.Identifier.Axis.Button._5, viewportZoomInAction, 
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		
+		// --Initialize Physics System--
+		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
+		float[] gravity = {0f,-5f,0f};
+		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
+		physicsEngine.initSystem();
+		physicsEngine.setGravity(gravity);
+		
+		// --Create Physics World--
+		float mass = 1.0f;
+		float up[] = {0,1,0};
+		double[] tempTransform;
+
+		Matrix4f translation = new Matrix4f(grenade1.getLocalTranslation());
+		tempTransform = toDoubleArray(translation.get(vals));
+		grenade1P = physicsEngine.addSphereObject(health, mass, tempTransform, .35f);
+
+		grenade1P.setBounciness(.2f);
+		grenade1.setPhysicsObject(grenade1P);
+
+		translation = new Matrix4f(plane.getLocalRotation());
+		tempTransform = toDoubleArray(translation.get(vals));
+		planeP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, up, 0.0f);
+		
+		planeP.setBounciness(1.0f);
+		plane.setPhysicsObject(planeP);
+
 	}
 
 	@Override
@@ -389,6 +446,25 @@ public class MyGame extends VariableFrameRateGame
 		prevTime = System.currentTimeMillis();
 		deltaTime = elapsedTime * 0.03;
 		
+		// Update Physics
+		if (running = true) 
+		{
+			Matrix4f mat = new Matrix4f();
+			Matrix4f mat2 = new Matrix4f().identity();
+			checkForCollisions();
+			physicsEngine.update((float)elapsedTime);
+			for (GameObject go:engine.getSceneGraph().getGameObjects()) 
+			{
+				if (go.getPhysicsObject() != null) 
+				{
+					mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
+					mat2.set(3,0,mat.m30());
+					mat2.set(3,1,mat.m31());
+					mat2.set(3,2,mat.m32());
+					go.setLocalTranslation(mat2);
+				} 
+			}
+		}
 
 		//  Build Main HUD
 		float mainRelativeLeft = engine.getRenderSystem().getViewport("MAIN").getRelativeLeft();
@@ -429,6 +505,32 @@ public class MyGame extends VariableFrameRateGame
 		im.update((float)elapsedTime);
 		orbitController.updateCameraPosition();
 		processNetworking((float)elapsedTime);
+	}
+
+	// Physics Engine Collision Check
+	private void checkForCollisions(){ 
+        com.bulletphysics.dynamics.DynamicsWorld dynamicsWorld;
+        com.bulletphysics.collision.broadphase.Dispatcher dispatcher;
+        com.bulletphysics.collision.narrowphase.PersistentManifold manifold;
+        com.bulletphysics.dynamics.RigidBody object1, object2;
+        com.bulletphysics.collision.narrowphase.ManifoldPoint contactPoint;
+        dynamicsWorld = ((JBulletPhysicsEngine)physicsEngine).getDynamicsWorld();
+        dispatcher = dynamicsWorld.getDispatcher();
+        int manifoldCount = dispatcher.getNumManifolds();
+        for (int i=0; i<manifoldCount; i++){ 
+            manifold = dispatcher.getManifoldByIndexInternal(i);
+            object1 = (com.bulletphysics.dynamics.RigidBody)manifold.getBody0();
+            object2 = (com.bulletphysics.dynamics.RigidBody)manifold.getBody1();
+            JBulletPhysicsObject obj1 = JBulletPhysicsObject.getJBulletPhysicsObject(object1);
+            JBulletPhysicsObject obj2 = JBulletPhysicsObject.getJBulletPhysicsObject(object2);
+            for (int j = 0; j < manifold.getNumContacts(); j++){ 
+            contactPoint = manifold.getContactPoint(j);
+                if (contactPoint.getDistance() < 0.0f){ 
+                    //System.out.println("---- hit between " + obj1 + " and " + obj2);
+					break;
+				}
+			}
+		}
 	}
 
 
@@ -544,6 +646,27 @@ public class MyGame extends VariableFrameRateGame
 	public double getDeltaTime(){
 		return this.deltaTime;
 	}
+
+	// -------------PHYSICS UTILITY -------------
+	public static float[] toFloatArray(double[] arr){ 
+        if (arr == null) return null;
+        int n = arr.length;
+        float[] ret = new float[n];
+        for (int i = 0; i < n; i++){ 
+            ret[i] = (float)arr[i];
+        }
+        return ret;
+    }
+
+    public static double[] toDoubleArray(float[] arr){ 
+        if (arr == null) return null;
+        int n = arr.length;
+        double[] ret = new double[n];
+        for (int i = 0; i < n; i++){ 
+            ret[i] = (double)arr[i];
+        }
+        return ret;
+    }
 }
 
 
