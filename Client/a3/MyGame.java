@@ -27,6 +27,7 @@ import net.java.games.input.Component.Identifier.*;
 import tage.networking.IGameConnection.ProtocolType;
 
 import javax.swing.*;
+import javax.swing.plaf.metal.OceanTheme;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
@@ -39,6 +40,15 @@ import tage.physics.PhysicsEngineFactory;
 import tage.physics.JBullet.*;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
+
+import tage.audio.AudioManager;
+import tage.audio.AudioManagerFactory;
+import tage.audio.AudioResource;
+import tage.audio.AudioResourceType;
+import tage.audio.IAudioManager;
+import tage.audio.Sound;
+import tage.audio.SoundType;
+
 
 
 public class MyGame extends VariableFrameRateGame
@@ -104,6 +114,10 @@ public class MyGame extends VariableFrameRateGame
 	
 	private PhysicsEngine physicsEngine;
 	private PhysicsObject grenade1P, planeP;
+
+	// Sound
+	private IAudioManager audioMgr;
+	private Sound ambientSound, zombieSound;
 
 	private boolean running = true;
 	private float vals[] = new float[16];
@@ -424,7 +438,7 @@ public class MyGame extends VariableFrameRateGame
 
 		Matrix4f translation = new Matrix4f(grenade1.getLocalTranslation());
 		tempTransform = toDoubleArray(translation.get(vals));
-		grenade1P = physicsEngine.addSphereObject(health, mass, tempTransform, .35f);
+		grenade1P = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, tempTransform, .35f);
 
 		grenade1P.setBounciness(.2f);
 		grenade1.setPhysicsObject(grenade1P);
@@ -436,6 +450,10 @@ public class MyGame extends VariableFrameRateGame
 		planeP.setBounciness(1.0f);
 		plane.setPhysicsObject(planeP);
 
+
+		// Initialize Sound
+
+		initAudio();
 	}
 
 	@Override
@@ -531,7 +549,14 @@ public class MyGame extends VariableFrameRateGame
 				}
 			}
 		}
+
+
+	// Update Sound
+		zombieSound.setLocation(zombie.getWorldLocation());
+		ambientSound.setLocation(terr.getWorldLocation());
+		setEarParameters();
 	}
+
 
 
 	// Generates random number between -10 and 10 for loc coords
@@ -625,6 +650,48 @@ public class MyGame extends VariableFrameRateGame
 			{	protClient.sendByeMessage();
 			}
 		}
+	}
+
+	//---------------------- AUDIO --------------
+
+	public void initAudio() {
+		AudioResource resource1, resource2;
+		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
+		if (!audioMgr.initialize()) {
+			System.out.println("Audio Manager failed to initialize!");
+			return;
+		}
+
+		resource1 = audioMgr.createAudioResource("assets/sounds/zombie.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource2 = audioMgr.createAudioResource("assets/sounds/ambient.wav", AudioResourceType.AUDIO_STREAM);
+		zombieSound = new Sound(resource1,SoundType.SOUND_EFFECT, 100, true);
+		ambientSound = new Sound(resource2, SoundType.SOUND_EFFECT, 100, true);
+
+		zombieSound.initialize(audioMgr);
+		ambientSound.initialize(audioMgr);
+
+		zombieSound.setMaxDistance(10.0f);
+		zombieSound.setMinDistance(0.5f);
+		zombieSound.setRollOff(5.0f);
+
+		ambientSound.setMaxDistance(10.0f);
+		ambientSound.setMinDistance(0.5f);
+		ambientSound.setRollOff(5.0f);
+
+		zombieSound.setLocation(zombie.getWorldLocation());
+		ambientSound.setLocation(terr.getWorldLocation());
+
+		setEarParameters();
+
+		zombieSound.play();
+		ambientSound.play();
+		
+	}
+
+	public void setEarParameters() {
+		Camera camera = (engine.getRenderSystem().getViewport("MAIN").getCamera());
+		audioMgr.getEar().setLocation(avatar.getWorldLocation());
+		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
 	}
 
 	//--------------------- GETTERS -------------
