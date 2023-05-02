@@ -41,13 +41,13 @@ import tage.physics.JBullet.*;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
-import tage.audio.AudioManager;
 import tage.audio.AudioManagerFactory;
 import tage.audio.AudioResource;
 import tage.audio.AudioResourceType;
 import tage.audio.IAudioManager;
 import tage.audio.Sound;
 import tage.audio.SoundType;
+import tage.audio.joal.JOALAudioManager;
 
 
 
@@ -553,7 +553,7 @@ public class MyGame extends VariableFrameRateGame
 
 	// Update Sound
 		zombieSound.setLocation(zombie.getWorldLocation());
-		ambientSound.setLocation(terr.getWorldLocation());
+		//ambientSound.setLocation(terr.getWorldLocation());
 		setEarParameters();
 	}
 
