@@ -1,0 +1,5 @@
+terrain:
+https://opengameart.org/content/terrain-textures-01a-vegetation-and-humus-tiled-512px
+
+skybox:
+https://opengameart.org/content/cloudy-skyboxes
