@@ -15,10 +15,7 @@ import java.io.*;
 import org.joml.*;
 
 import java.util.*;
-import java.util.ArrayList;
 import java.util.Random;
-import java.util.UUID;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -39,6 +36,7 @@ import tage.physics.PhysicsObject;
 import tage.physics.PhysicsEngineFactory;
 import tage.physics.JBullet.*;
 import com.bulletphysics.dynamics.RigidBody;
+import com.jogamp.opengl.util.texture.Texture;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
 import tage.audio.AudioManagerFactory;
@@ -99,6 +97,10 @@ public class MyGame extends VariableFrameRateGame
 	private ObjShape  sphereS;
 	private TextureImage spheretx;
 
+	private GameObject laserBeam;
+	private ObjShape laserBeamS;
+	private TextureImage lasertx;
+	private HashMap<Integer, GameObject> physicsObjects;
 
 	// Server
 	private String serverAddress;
@@ -157,6 +159,8 @@ public class MyGame extends VariableFrameRateGame
 
 		grenadeS = new Sphere();
 		planeS = new Plane();
+
+		laserBeamS = new Sphere();
 	
 	}
 
@@ -172,6 +176,8 @@ public class MyGame extends VariableFrameRateGame
 		spheretx = new TextureImage("sob.png");
 
 		grenadetx = new TextureImage("grenade.png");
+
+		lasertx = new TextureImage("energy.png");
 	
 
 	}
@@ -349,6 +355,8 @@ public class MyGame extends VariableFrameRateGame
 		RightAction rightAction = new RightAction(this, protClient);
 		FwdBwdAction fwdBwdAction = new FwdBwdAction(this, protClient);
 		TurnAction turnAction = new TurnAction(this, protClient);
+		FireAction fireAction = new FireAction(this, protClient);
+
 
 		ToggleAxesAction toggleAxesAction = new ToggleAxesAction(this); 
 
@@ -376,6 +384,8 @@ public class MyGame extends VariableFrameRateGame
 			net.java.games.input.Component.Identifier.Key.D, rightAction,
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, fireAction, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+
 		im.associateActionWithAllKeyboards(
 			net.java.games.input.Component.Identifier.Key.I, viewportUpAction,
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -394,6 +404,7 @@ public class MyGame extends VariableFrameRateGame
 		im.associateActionWithAllKeyboards(
 			net.java.games.input.Component.Identifier.Key._9, viewportZoomOutAction,
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);	
+
 
 		// Gamepad
 		im.associateActionWithAllGamepads(
@@ -425,8 +436,10 @@ public class MyGame extends VariableFrameRateGame
 			InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		
 		// --Initialize Physics System--
+		physicsObjects = new HashMap<Integer, GameObject>();
+
 		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
-		float[] gravity = {0f,-5f,0f};
+		float[] gravity = {0f,-1f,0f};
 		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
 		physicsEngine.initSystem();
 		physicsEngine.setGravity(gravity);
@@ -449,6 +462,10 @@ public class MyGame extends VariableFrameRateGame
 		
 		planeP.setBounciness(1.0f);
 		plane.setPhysicsObject(planeP);
+		
+
+		
+		updateProjectile();
 
 
 		// Initialize Sound
@@ -464,6 +481,8 @@ public class MyGame extends VariableFrameRateGame
 		prevTime = System.currentTimeMillis();
 		deltaTime = elapsedTime * 0.03;
 		
+		updateProjectile();
+
 		// Update Physics
 		if (running = true) 
 		{
@@ -480,9 +499,18 @@ public class MyGame extends VariableFrameRateGame
 					mat2.set(3,1,mat.m31());
 					mat2.set(3,2,mat.m32());
 					go.setLocalTranslation(mat2);
-				} 
+
+					mat2.set(2,0,mat.m20()); mat2.set(2,1,mat.m21()); mat2.set(2,2,mat.m22());
+					mat2.set(1,0,mat.m10()); mat2.set(1,1,mat.m11()); mat2.set(1,2,mat.m12());
+					AxisAngle4f aa = new AxisAngle4f();
+      				mat2.getRotation(aa);
+					Matrix4f rotMatrix = new Matrix4f();
+      				rotMatrix.rotation(aa);
+					go.setLocalRotation(rotMatrix);
+				}
 			}
 		}
+
 
 		//  Build Main HUD
 		float mainRelativeLeft = engine.getRenderSystem().getViewport("MAIN").getRelativeLeft();
@@ -532,6 +560,7 @@ public class MyGame extends VariableFrameRateGame
         com.bulletphysics.collision.narrowphase.PersistentManifold manifold;
         com.bulletphysics.dynamics.RigidBody object1, object2;
         com.bulletphysics.collision.narrowphase.ManifoldPoint contactPoint;
+
         dynamicsWorld = ((JBulletPhysicsEngine)physicsEngine).getDynamicsWorld();
         dispatcher = dynamicsWorld.getDispatcher();
         int manifoldCount = dispatcher.getNumManifolds();
@@ -553,8 +582,56 @@ public class MyGame extends VariableFrameRateGame
 
 	// Update Sound
 		zombieSound.setLocation(zombie.getWorldLocation());
-		//ambientSound.setLocation(terr.getWorldLocation());
+		ambientSound.setLocation(terr.getWorldLocation());
 		setEarParameters();
+	}
+
+	// Lasers
+	private LinkedList<Laser> activeLasers = new LinkedList<Laser>();
+	private LinkedList<Laser> inactiveLasers = new LinkedList<Laser>();
+
+	public Laser createLaser(Vector2f direction, int layer, Vector2f pos, float speed) {
+		Laser laser = null;
+		if(inactiveLasers.size() > 0) {
+			laser = inactiveLasers.getFirst();
+			laser.getGameObject().getRenderStates().enableRendering();
+			activeLasers.addLast(laser);
+			inactiveLasers.removeFirst();
+		} else {
+			GameObject gameObject = new GameObject(GameObject.root(), sphereS, lasertx);
+			gameObject.setLocalScale(new Matrix4f().scaling(.05f));
+			float vals[] = new float[16];
+			int uid = physicsEngine.nextUID();
+			double[] transform = toDoubleArray(gameObject.getLocalTranslation().get(vals));
+			PhysicsObject physicsObject = physicsEngine.addSphereObject(uid, 1f, transform, .05f);
+			physicsObject.setBounciness(1f);
+			physicsObject.setFriction(0f);
+			gameObject.setPhysicsObject(physicsObject);
+			physicsObjects.put(uid, gameObject);
+
+			laser = new Laser(gameObject, this);
+			activeLasers.addLast(laser);
+		}
+		laser.initialize(direction, layer, pos, speed);
+		return laser;
+	}
+
+	public void deactivateProjectile(Laser laser) {
+		for ( int i = 0; i < activeLasers.size(); i ++) {
+			if(activeLasers.get(i) == laser) {
+				inactiveLasers.addLast(activeLasers.remove(i));
+				laser.getGameObject().getRenderStates().disableRendering();
+				return;
+			}
+		}
+	}
+
+	public void updateProjectile() {
+		Laser activeLasers[] = new Laser[this.activeLasers.size()];
+		this.activeLasers.toArray(activeLasers);
+		for (Laser activeLaser : activeLasers) {
+			activeLaser.update((float)elapsedTime / 1000);
+		}
 	}
 
 
@@ -665,7 +742,7 @@ public class MyGame extends VariableFrameRateGame
 		resource1 = audioMgr.createAudioResource("assets/sounds/zombie.wav", AudioResourceType.AUDIO_SAMPLE);
 		resource2 = audioMgr.createAudioResource("assets/sounds/ambient.wav", AudioResourceType.AUDIO_STREAM);
 		zombieSound = new Sound(resource1,SoundType.SOUND_EFFECT, 100, true);
-		ambientSound = new Sound(resource2, SoundType.SOUND_EFFECT, 100, true);
+		ambientSound = new Sound(resource2, SoundType.SOUND_EFFECT, 50, true);
 
 		zombieSound.initialize(audioMgr);
 		ambientSound.initialize(audioMgr);
