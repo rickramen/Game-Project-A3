@@ -114,7 +114,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	// Sound
 	private IAudioManager audioMgr;
-	private Sound ambientSound, zombieSound;
+	private Sound ambientSound, zombieSound, laserSound;
 
 	private boolean running = true;
 	private float vals[] = new float[16];
@@ -578,6 +578,8 @@ public class MyGame extends VariableFrameRateGame {
 		// Update Sound
 		zombieSound.setLocation(zombie.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
+		laserSound.setLocation(avatar.getWorldLocation());
+		
 		setEarParameters();
 	}
 
@@ -587,6 +589,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	public Laser createLaser(Vector2f direction, int layer, Vector2f pos, float speed) {
 		Laser laser = null;
+
 		if(inactiveLasers.size() > 0) {
 			laser = inactiveLasers.getFirst();
 			laser.getGameObject().getRenderStates().enableRendering();
@@ -604,10 +607,13 @@ public class MyGame extends VariableFrameRateGame {
 			gameObject.setPhysicsObject(physicsObject);
 			physicsObjects.put(uid, gameObject);
 
+
+
 			laser = new Laser(gameObject, this);
 			activeLasers.addLast(laser);
 		}
 		laser.initialize(direction, layer, pos, speed);
+
 		return laser;
 	}
 
@@ -623,9 +629,11 @@ public class MyGame extends VariableFrameRateGame {
 
 	public void updateProjectile() {
 		Laser activeLasers[] = new Laser[this.activeLasers.size()];
+
 		this.activeLasers.toArray(activeLasers);
 		for (Laser activeLaser : activeLasers) {
 			activeLaser.update((float)elapsedTime / 1000);
+
 		}
 	}
 
@@ -726,7 +734,7 @@ public class MyGame extends VariableFrameRateGame {
 	// ---------------------- AUDIO --------------
 
 	public void initAudio() {
-		AudioResource resource1, resource2;
+		AudioResource resource1, resource2, resource3;
 		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
 		if (!audioMgr.initialize()) {
 			System.out.println("Audio Manager failed to initialize!");
@@ -735,11 +743,14 @@ public class MyGame extends VariableFrameRateGame {
 
 		resource1 = audioMgr.createAudioResource("assets/sounds/zombie.wav", AudioResourceType.AUDIO_SAMPLE);
 		resource2 = audioMgr.createAudioResource("assets/sounds/ambient.wav", AudioResourceType.AUDIO_STREAM);
+		resource3 = audioMgr.createAudioResource("assets/sounds/laser.wav", AudioResourceType.AUDIO_SAMPLE);
 		zombieSound = new Sound(resource1,SoundType.SOUND_EFFECT, 100, true);
 		ambientSound = new Sound(resource2, SoundType.SOUND_EFFECT, 50, true);
+		laserSound = new Sound(resource3, SoundType.SOUND_EFFECT,50, false);
 
 		zombieSound.initialize(audioMgr);
 		ambientSound.initialize(audioMgr);
+		laserSound.initialize(audioMgr);
 
 		zombieSound.setMaxDistance(10.0f);
 		zombieSound.setMinDistance(0.5f);
@@ -749,13 +760,19 @@ public class MyGame extends VariableFrameRateGame {
 		ambientSound.setMinDistance(0.5f);
 		ambientSound.setRollOff(5.0f);
 
+		laserSound.setMaxDistance(10.0f);
+		laserSound.setMinDistance(0.5f);
+		laserSound.setRollOff(5.0f);
+
 		zombieSound.setLocation(zombie.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
+		laserSound.setLocation(avatar.getWorldLocation());
 
 		setEarParameters();
 
 		zombieSound.play();
 		ambientSound.play();
+
 
 	}
 
@@ -763,6 +780,11 @@ public class MyGame extends VariableFrameRateGame {
 		Camera camera = (engine.getRenderSystem().getViewport("MAIN").getCamera());
 		audioMgr.getEar().setLocation(avatar.getWorldLocation());
 		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
+	}
+
+	public void playFireSound() {
+		laserSound.play();
+
 	}
 
 	// --------------------- GETTERS -------------

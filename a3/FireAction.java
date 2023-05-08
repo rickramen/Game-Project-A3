@@ -27,7 +27,7 @@ public class FireAction extends AbstractInputAction{
         localLocation = av.getLocalLocation();
         rot = av.getLocalRotation();
         game.createLaser(new Vector2f(0f,1f), 0xfffffffe, new Vector2f(localLocation.x, localLocation.z), 10f);
-
+        game.playFireSound();
     }
 
 

@@ -1,5 +1,8 @@
 terrain:
-https://opengameart.org/content/terrain-textures-01a-vegetation-and-humus-tiled-512px
+https://www.solarsystemscope.com/textures/
 
 skybox:
 https://opengameart.org/content/cloudy-skyboxes
+
+laser:
+https://pixabay.com/sound-effects/blaster-multiple-14893/
