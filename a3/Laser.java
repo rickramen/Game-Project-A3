@@ -4,9 +4,9 @@ import tage.*;
 import org.joml.*;
 
 public class Laser {
+    //private Vector3f direction;
     private Vector2f direction;
-    private GameObject gameObject;
-    private int layer = 0xffffffff;
+    private GameObject gameObject, av;
     private MyGame game;
     private float speed;
     private float deactivateTimer;
@@ -20,11 +20,12 @@ public class Laser {
         return gameObject;
     }
 
-    public void initialize(Vector2f direction, int layer, Vector2f pos, float speed) {
+    public void initialize(Vector2f direction, Vector2f pos, float speed) {
+        av = game.getAvatar();
+        av.getWorldRotation();
         direction = direction.normalize();
         this.direction = direction;
-        this.layer = layer;
-        gameObject.setLocalLocation(new Vector3f(pos.x, .65f, pos.y));
+        gameObject.setLocalLocation(new Vector3f(pos.x, av.getWorldLocation().y() + .65f , pos.y));
         this.speed = speed;
         syncToPhysics();
         deactivateTimer = 0f;
@@ -36,6 +37,7 @@ public class Laser {
             game.deactivateProjectile(this);
             return;
         }
+        //Vector3f deltaPosition = new Vector3f(direction.x, direction.y, direction.z);
         Vector2f deltaPosition = new Vector2f(direction.x, direction.y);
         deltaPosition.mul(speed).mul(deltaTime);
         Vector3f localLocation = gameObject.getLocalLocation();

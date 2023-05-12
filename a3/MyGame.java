@@ -105,12 +105,12 @@ public class MyGame extends VariableFrameRateGame {
 	private boolean isClientConnected = false;
 
 	// Physics Engine
-	private GameObject grenade1, plane;
-	private ObjShape grenadeS, planeS;
+	private GameObject grenade1;
+	private ObjShape grenadeS;
 	private TextureImage grenadetx;
 
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject grenade1P, planeP;
+	private PhysicsObject grenade1P;
 
 	// Sound
 	private IAudioManager audioMgr;
@@ -153,7 +153,6 @@ public class MyGame extends VariableFrameRateGame {
 		sphereS = new Sphere();
 
 		grenadeS = new Sphere();
-		planeS = new Plane();
 
 		laserBeamS = new Sphere();
 	
@@ -260,9 +259,6 @@ public class MyGame extends VariableFrameRateGame {
 		grenade1.setLocalTranslation((new Matrix4f()).translation(0, 4, 0));
 		grenade1.setLocalScale((new Matrix4f()).scaling(.35f));
 
-		plane = new GameObject(GameObject.root(), planeS, spheretx);
-		plane.setLocalTranslation((new Matrix4f()).translation(0, 0, 0));
-		plane.setLocalScale((new Matrix4f()).scaling(.75f));
 
 	}
 
@@ -426,7 +422,7 @@ public class MyGame extends VariableFrameRateGame {
 		physicsObjects = new HashMap<Integer, GameObject>();
 
 		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
-		float[] gravity = {0f,-1f,0f};
+		float[] gravity = {0f,0f,0f};
 		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
 		physicsEngine.initSystem();
 		physicsEngine.setGravity(gravity);
@@ -443,12 +439,8 @@ public class MyGame extends VariableFrameRateGame {
 		grenade1P.setBounciness(.2f);
 		grenade1.setPhysicsObject(grenade1P);
 
-		translation = new Matrix4f(plane.getLocalRotation());
 		tempTransform = toDoubleArray(translation.get(vals));
-		planeP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, up, 0.0f);
 
-		planeP.setBounciness(1.0f);
-		plane.setPhysicsObject(planeP);
 		
 
 		
@@ -587,7 +579,7 @@ public class MyGame extends VariableFrameRateGame {
 	private LinkedList<Laser> activeLasers = new LinkedList<Laser>();
 	private LinkedList<Laser> inactiveLasers = new LinkedList<Laser>();
 
-	public Laser createLaser(Vector2f direction, int layer, Vector2f pos, float speed) {
+	public Laser createLaser(Vector2f direction, Vector2f pos, float speed) {
 		Laser laser = null;
 
 		if(inactiveLasers.size() > 0) {
@@ -612,7 +604,7 @@ public class MyGame extends VariableFrameRateGame {
 			laser = new Laser(gameObject, this);
 			activeLasers.addLast(laser);
 		}
-		laser.initialize(direction, layer, pos, speed);
+		laser.initialize(direction, pos, speed);
 
 		return laser;
 	}
