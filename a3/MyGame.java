@@ -115,8 +115,7 @@ public class MyGame extends VariableFrameRateGame {
 	private float vals[] = new float[16];
 
 	// NPC
-	//private GhostNPC zombie;
-
+	// private GhostNPC zombie;
 
 	public MyGame(String serverAddress, int serverPort, String protocol) {
 		super();
@@ -151,9 +150,8 @@ public class MyGame extends VariableFrameRateGame {
 
 		lightningS = new ImportedModel("speed.obj");
 
-
 		laserBeamS = new Sphere();
-	
+
 	}
 
 	@Override
@@ -166,10 +164,7 @@ public class MyGame extends VariableFrameRateGame {
 		ghostT = new TextureImage("zombie.png");
 		lightningtx = new TextureImage("speed.png");
 
-
 		lasertx = new TextureImage("energy.png");
-	
-	
 
 	}
 
@@ -262,7 +257,7 @@ public class MyGame extends VariableFrameRateGame {
 		zombie.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling((float) zombieScale);
 		zombie.setLocalScale(initialScale);
-
+		zombieS.playAnimation("WALK", 0.3f, AnimatedShape.EndType.LOOP, 0);
 
 	}
 
@@ -304,7 +299,6 @@ public class MyGame extends VariableFrameRateGame {
 		// ----------------- Node Controllers -------------------
 		rc = new RotationController(engine, new Vector3f(0, 1, 0), (float) rotationSpeed);
 		(engine.getSceneGraph()).addNodeController(rc);
-	
 
 		rc.toggle();
 
@@ -341,7 +335,6 @@ public class MyGame extends VariableFrameRateGame {
 		TurnAction turnAction = new TurnAction(this, protClient);
 		FireAction fireAction = new FireAction(this, protClient);
 
-
 		ToggleAxesAction toggleAxesAction = new ToggleAxesAction(this);
 
 		ViewportUpAction viewportUpAction = new ViewportUpAction(this);
@@ -368,7 +361,8 @@ public class MyGame extends VariableFrameRateGame {
 				net.java.games.input.Component.Identifier.Key.D, rightAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, fireAction, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, fireAction,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		im.associateActionWithAllKeyboards(
 				net.java.games.input.Component.Identifier.Key.I, viewportUpAction,
@@ -388,7 +382,6 @@ public class MyGame extends VariableFrameRateGame {
 		im.associateActionWithAllKeyboards(
 				net.java.games.input.Component.Identifier.Key._9, viewportZoomOutAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-
 
 		// Gamepad
 		im.associateActionWithAllGamepads(
@@ -423,7 +416,7 @@ public class MyGame extends VariableFrameRateGame {
 		physicsObjects = new HashMap<Integer, GameObject>();
 
 		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
-		float[] gravity = {0f,0f,0f};
+		float[] gravity = { 0f, 0f, 0f };
 		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
 		physicsEngine.initSystem();
 		physicsEngine.setGravity(gravity);
@@ -433,11 +426,7 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		
-
-		
 		updateProjectile();
-
 
 		// Initialize Sound
 
@@ -450,23 +439,23 @@ public class MyGame extends VariableFrameRateGame {
 		elapsedTime = System.currentTimeMillis() - prevTime;
 		prevTime = System.currentTimeMillis();
 		deltaTime = elapsedTime * 0.03;
-		
+
 		updateProjectile();
 
 		// Update Sound
 		zombieSound.setLocation(zombie.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
 		laserSound.setLocation(avatar.getWorldLocation());
-		
+
 		setEarParameters();
 
 		// Distance Detection
-		if(avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
+		if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
 			miniLightning.getRenderStates().enableRendering();
 			// new big lightning spot
 			// increase avatar speed
 		}
- 
+
 		// Update Physics
 		if (running = true) {
 			Matrix4f mat = new Matrix4f();
@@ -481,17 +470,20 @@ public class MyGame extends VariableFrameRateGame {
 					mat2.set(3, 2, mat.m32());
 					go.setLocalTranslation(mat2);
 
-					mat2.set(2,0,mat.m20()); mat2.set(2,1,mat.m21()); mat2.set(2,2,mat.m22());
-					mat2.set(1,0,mat.m10()); mat2.set(1,1,mat.m11()); mat2.set(1,2,mat.m12());
+					mat2.set(2, 0, mat.m20());
+					mat2.set(2, 1, mat.m21());
+					mat2.set(2, 2, mat.m22());
+					mat2.set(1, 0, mat.m10());
+					mat2.set(1, 1, mat.m11());
+					mat2.set(1, 2, mat.m12());
 					AxisAngle4f aa = new AxisAngle4f();
-      				mat2.getRotation(aa);
+					mat2.getRotation(aa);
 					Matrix4f rotMatrix = new Matrix4f();
-      				rotMatrix.rotation(aa);
+					rotMatrix.rotation(aa);
 					go.setLocalRotation(rotMatrix);
 				}
 			}
 		}
-
 
 		// Build Main HUD
 		float mainRelativeLeft = engine.getRenderSystem().getViewport("MAIN").getRelativeLeft();
@@ -528,7 +520,6 @@ public class MyGame extends VariableFrameRateGame {
 		float height = terr.getHeight(loc.x(), loc.z());
 		avatar.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
 
-
 		Vector3f zombieLoc = zombie.getWorldLocation();
 		float zombieHeight = terr.getHeight(zombieLoc.x(), zombieLoc.z());
 
@@ -538,7 +529,7 @@ public class MyGame extends VariableFrameRateGame {
 			float time = (float) elapsedTime % 10;
 			Vector3f oldPosition = zombie.getWorldLocation();
 			Vector3f targetLocation = avatar.getLocalLocation();
-			Vector4f chaseDirection = new Vector4f(0f,0f,1f,1f);
+			Vector4f chaseDirection = new Vector4f(0f, 0f, 1f, 1f);
 			chaseDirection.mul(avatar.getWorldRotation());
 			chaseDirection.mul(.001f * time);
 			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
@@ -551,51 +542,32 @@ public class MyGame extends VariableFrameRateGame {
 		processNetworking((float) elapsedTime);
 	}
 
-	// Test for animation (DELETE LATER)
-	public void keyPressed(KeyEvent e) {
-		switch (e.getKeyCode()) {
-			case KeyEvent.VK_2: {
-				zombieS.playAnimation("WALK", 0.3f, AnimatedShape.EndType.LOOP, 0);
-				break;
-			}
-			case KeyEvent.VK_3:
-				zombieS.stopAnimation();
-				break;
-		}
-		super.keyPressed(e);
-	}
-
-	
-
 	// Physics Engine Collision Check
-	private void checkForCollisions(){ 
-        com.bulletphysics.dynamics.DynamicsWorld dynamicsWorld;
-        com.bulletphysics.collision.broadphase.Dispatcher dispatcher;
-        com.bulletphysics.collision.narrowphase.PersistentManifold manifold;
-        com.bulletphysics.dynamics.RigidBody object1, object2;
-        com.bulletphysics.collision.narrowphase.ManifoldPoint contactPoint;
-        dynamicsWorld = ((JBulletPhysicsEngine)physicsEngine).getDynamicsWorld();
-        dispatcher = dynamicsWorld.getDispatcher();
-        int manifoldCount = dispatcher.getNumManifolds();
-        for (int i=0; i<manifoldCount; i++){ 
-            manifold = dispatcher.getManifoldByIndexInternal(i);
-            object1 = (com.bulletphysics.dynamics.RigidBody)manifold.getBody0();
-            object2 = (com.bulletphysics.dynamics.RigidBody)manifold.getBody1();
-            JBulletPhysicsObject obj1 = JBulletPhysicsObject.getJBulletPhysicsObject(object1);
-            JBulletPhysicsObject obj2 = JBulletPhysicsObject.getJBulletPhysicsObject(object2);
-            for (int j = 0; j < manifold.getNumContacts(); j++){ 
-            contactPoint = manifold.getContactPoint(j);
-                if (contactPoint.getDistance() < 0.0f){ 
-                    //System.out.println("---- hit between " + obj1 + " and " + obj2);
+	private void checkForCollisions() {
+		com.bulletphysics.dynamics.DynamicsWorld dynamicsWorld;
+		com.bulletphysics.collision.broadphase.Dispatcher dispatcher;
+		com.bulletphysics.collision.narrowphase.PersistentManifold manifold;
+		com.bulletphysics.dynamics.RigidBody object1, object2;
+		com.bulletphysics.collision.narrowphase.ManifoldPoint contactPoint;
+		dynamicsWorld = ((JBulletPhysicsEngine) physicsEngine).getDynamicsWorld();
+		dispatcher = dynamicsWorld.getDispatcher();
+		int manifoldCount = dispatcher.getNumManifolds();
+		for (int i = 0; i < manifoldCount; i++) {
+			manifold = dispatcher.getManifoldByIndexInternal(i);
+			object1 = (com.bulletphysics.dynamics.RigidBody) manifold.getBody0();
+			object2 = (com.bulletphysics.dynamics.RigidBody) manifold.getBody1();
+			JBulletPhysicsObject obj1 = JBulletPhysicsObject.getJBulletPhysicsObject(object1);
+			JBulletPhysicsObject obj2 = JBulletPhysicsObject.getJBulletPhysicsObject(object2);
+			for (int j = 0; j < manifold.getNumContacts(); j++) {
+				contactPoint = manifold.getContactPoint(j);
+				if (contactPoint.getDistance() < 0.0f) {
+					// System.out.println("---- hit between " + obj1 + " and " + obj2);
 					break;
 				}
 			}
 		}
 
-
 	}
-
-	
 
 	// Lasers
 	private LinkedList<Laser> activeLasers = new LinkedList<Laser>();
@@ -604,7 +576,7 @@ public class MyGame extends VariableFrameRateGame {
 	public Laser createLaser(Vector2f direction, Vector2f pos, float speed) {
 		Laser laser = null;
 
-		if(inactiveLasers.size() > 0) {
+		if (inactiveLasers.size() > 0) {
 			laser = inactiveLasers.getFirst();
 			laser.getGameObject().getRenderStates().enableRendering();
 			activeLasers.addLast(laser);
@@ -621,8 +593,6 @@ public class MyGame extends VariableFrameRateGame {
 			gameObject.setPhysicsObject(physicsObject);
 			physicsObjects.put(uid, gameObject);
 
-
-
 			laser = new Laser(gameObject, this);
 			activeLasers.addLast(laser);
 		}
@@ -632,8 +602,8 @@ public class MyGame extends VariableFrameRateGame {
 	}
 
 	public void deactivateProjectile(Laser laser) {
-		for ( int i = 0; i < activeLasers.size(); i ++) {
-			if(activeLasers.get(i) == laser) {
+		for (int i = 0; i < activeLasers.size(); i++) {
+			if (activeLasers.get(i) == laser) {
 				inactiveLasers.addLast(activeLasers.remove(i));
 				laser.getGameObject().getRenderStates().disableRendering();
 				return;
@@ -646,12 +616,10 @@ public class MyGame extends VariableFrameRateGame {
 
 		this.activeLasers.toArray(activeLasers);
 		for (Laser activeLaser : activeLasers) {
-			activeLaser.update((float)elapsedTime / 1000);
+			activeLaser.update((float) elapsedTime / 1000);
 
 		}
 	}
-
-
 
 	// Generates random number between -10 and 10 for loc coords
 	private int setRandomLocation() {
@@ -758,9 +726,9 @@ public class MyGame extends VariableFrameRateGame {
 		resource1 = audioMgr.createAudioResource("assets/sounds/zombie.wav", AudioResourceType.AUDIO_SAMPLE);
 		resource2 = audioMgr.createAudioResource("assets/sounds/ambient.wav", AudioResourceType.AUDIO_STREAM);
 		resource3 = audioMgr.createAudioResource("assets/sounds/laser.wav", AudioResourceType.AUDIO_SAMPLE);
-		zombieSound = new Sound(resource1,SoundType.SOUND_EFFECT, 100, true);
+		zombieSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
 		ambientSound = new Sound(resource2, SoundType.SOUND_EFFECT, 50, true);
-		laserSound = new Sound(resource3, SoundType.SOUND_EFFECT,50, false);
+		laserSound = new Sound(resource3, SoundType.SOUND_EFFECT, 50, false);
 
 		zombieSound.initialize(audioMgr);
 		ambientSound.initialize(audioMgr);
@@ -787,7 +755,6 @@ public class MyGame extends VariableFrameRateGame {
 		zombieSound.play();
 		ambientSound.play();
 
-
 	}
 
 	public void setEarParameters() {
@@ -804,7 +771,6 @@ public class MyGame extends VariableFrameRateGame {
 	// --------------------- CHASE --------------
 	public void chaseAvatar() {
 	}
-
 
 	// --------------------- GETTERS -------------
 
