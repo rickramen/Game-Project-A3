@@ -16,6 +16,7 @@ public class ProtocolClient extends GameConnectionClient
 	private MyGame game;
 	private GhostManager ghostManager;
 	private UUID id;
+	private GhostNPC ghostNPC;
 	
 	public ProtocolClient(InetAddress remoteAddr, int remotePort, ProtocolType protocolType, MyGame game) throws IOException 
 	{	super(remoteAddr, remotePort, protocolType);
@@ -25,6 +26,29 @@ public class ProtocolClient extends GameConnectionClient
 	}
 	
 	public UUID getID() { return id; }
+
+// ------------- GHOST NPC SECTION --------------
+
+	private void createGhostNPC(Vector3f position) throws IOException
+	{ 
+		if (ghostNPC == null)
+			ghostNPC = new GhostNPC(0, game.getNPCshape(),
+							game.getNPCtexture(), position);
+	}
+
+	private void updateGhostNPC(Vector3f position, double gsize)
+	{ 
+		boolean gs;
+		if (ghostNPC == null)
+		{ try
+			{ createGhostNPC(position);
+			} catch (IOException e) 
+				{ System.out.println("error creating npc"); }
+		}
+		ghostNPC.setPosition(position);
+		if (gsize == 1.0) gs=false; else gs=true;
+		ghostNPC.setSize(gs);
+	}
 	
 	@Override
 	protected void processPacket(Object message)
@@ -129,7 +153,7 @@ public class ProtocolClient extends GameConnectionClient
 		{	e.printStackTrace();
 	}	}
 	
-	// Informs the server of the client’s Avatar’s position. The server 
+	// Informs the server of the clientï¿½s Avatarï¿½s position. The server 
 	// takes this message and forwards it to all other clients registered 
 	// with the server.
 	// Message Format: (create,localId,x,y,z) where x, y, and z represent the position

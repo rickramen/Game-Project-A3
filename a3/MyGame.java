@@ -114,6 +114,10 @@ public class MyGame extends VariableFrameRateGame {
 	private boolean running = true;
 	private float vals[] = new float[16];
 
+	// NPC
+	//private GhostNPC zombie;
+
+
 	public MyGame(String serverAddress, int serverPort, String protocol) {
 		super();
 		gm = new GhostManager(this);
@@ -158,14 +162,14 @@ public class MyGame extends VariableFrameRateGame {
 		hills = new TextureImage("heightmap.png");
 
 		zombietx = new TextureImage("zombie.png");
-		robottx = new TextureImage("robotunwraped3.png");
+		robottx = new TextureImage("robotunwraped2.png");
 		ghostT = new TextureImage("zombie.png");
 		lightningtx = new TextureImage("speed.png");
 
 
 		lasertx = new TextureImage("energy.png");
 	
-
+	
 
 	}
 
@@ -524,6 +528,23 @@ public class MyGame extends VariableFrameRateGame {
 		float height = terr.getHeight(loc.x(), loc.z());
 		avatar.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
 
+
+		Vector3f zombieLoc = zombie.getWorldLocation();
+		float zombieHeight = terr.getHeight(zombieLoc.x(), zombieLoc.z());
+
+		zombie.setLocalLocation(new Vector3f(zombieLoc.x(), zombieHeight, zombieLoc.z()));
+
+		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 2) {
+			float time = (float) elapsedTime % 10;
+			Vector3f oldPosition = zombie.getWorldLocation();
+			Vector3f targetLocation = avatar.getLocalLocation();
+			Vector4f chaseDirection = new Vector4f(0f,0f,1f,1f);
+			chaseDirection.mul(avatar.getWorldRotation());
+			chaseDirection.mul(.001f * time);
+			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
+			zombie.setLocalLocation(newPosition);
+		}
+
 		im.update((float) elapsedTime);
 		orbitController.updateCameraPosition();
 		zombieS.updateAnimation();
@@ -780,6 +801,11 @@ public class MyGame extends VariableFrameRateGame {
 
 	}
 
+	// --------------------- CHASE --------------
+	public void chaseAvatar() {
+	}
+
+
 	// --------------------- GETTERS -------------
 
 	public GameObject getAvatar() {
@@ -800,6 +826,14 @@ public class MyGame extends VariableFrameRateGame {
 
 	public double getDeltaTime() {
 		return this.deltaTime;
+	}
+
+	public ObjShape getNPCshape() {
+		return zombieS;
+	}
+
+	public TextureImage getNPCtexture() {
+		return zombietx;
 	}
 
 	// -------------PHYSICS UTILITY -------------
