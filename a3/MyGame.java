@@ -50,7 +50,7 @@ public class MyGame extends VariableFrameRateGame {
 	private static Engine engine;
 	private InputManager im;
 	private GhostManager gm;
-	private NodeController rc, bc;
+	private NodeController rc;
 
 	// ----- Scripts -----
 	private File scriptFile1;
@@ -71,7 +71,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
 	private double zombieScale;
-	private double rotationSpeed, bounceSpeed;
+	private double rotationSpeed;
 	private double terrainLocX, terrainLocY, terrainLocZ, terrainScaleX, terrainScaleY, terrainScaleZ;
 
 	// ---- GameObject Declarations ----
@@ -88,9 +88,9 @@ public class MyGame extends VariableFrameRateGame {
 	private ObjShape ghostS, robotS;
 	private TextureImage ghostT, zombietx, robottx;
 
-	private GameObject sphere;
-	private ObjShape sphereS;
-	private TextureImage spheretx;
+	private GameObject lightning, miniLightning;
+	private ObjShape lightningS;
+	private TextureImage lightningtx;
 
 	private GameObject laserBeam;
 	private ObjShape laserBeamS;
@@ -145,7 +145,7 @@ public class MyGame extends VariableFrameRateGame {
 		robotS = new ImportedModel("robot2.obj");
 		ghostS = new ImportedModel("zombie.obj");
 
-		sphereS = new Sphere();
+		lightningS = new ImportedModel("speed.obj");
 
 
 		laserBeamS = new Sphere();
@@ -158,9 +158,9 @@ public class MyGame extends VariableFrameRateGame {
 		hills = new TextureImage("heightmap.png");
 
 		zombietx = new TextureImage("zombie.png");
-		robottx = new TextureImage("robotunwraped.png");
+		robottx = new TextureImage("robotunwraped3.png");
 		ghostT = new TextureImage("zombie.png");
-		spheretx = new TextureImage("sob.png");
+		lightningtx = new TextureImage("speed.png");
 
 
 		lasertx = new TextureImage("energy.png");
@@ -231,15 +231,23 @@ public class MyGame extends VariableFrameRateGame {
 		avatar.getRenderStates().setModelOrientationCorrection(
 				(new Matrix4f()).rotationY((float) java.lang.Math.toRadians(180.0f)));
 
-		// build sphere
-		sphere = new GameObject(GameObject.root(), sphereS, spheretx);
+		// build lightning
+		lightning = new GameObject(GameObject.root(), lightningS, lightningtx);
 		initialTranslation = (new Matrix4f()).translation(
 				setRandomLocation(),
 				1,
 				setRandomLocation());
-		sphere.setLocalTranslation(initialTranslation);
+		lightning.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling(0.5f);
-		sphere.setLocalScale(initialScale);
+		lightning.setLocalScale(initialScale);
+
+		miniLightning = new GameObject(GameObject.root(), lightningS, lightningtx);
+		miniLightning.setLocalLocation(avatar.getLocalLocation().add(new Vector3f(0.0f, 0.0f, 1.5f)));
+		miniLightning.setLocalScale(new Matrix4f().scaling(1f));
+		miniLightning.setParent(avatar);
+		miniLightning.propagateTranslation(true);
+		miniLightning.propagateRotation(true);
+		miniLightning.getRenderStates().disableRendering();
 
 		// build zombie
 		zombie = new GameObject(GameObject.root(), zombieS, zombietx);
@@ -280,7 +288,6 @@ public class MyGame extends VariableFrameRateGame {
 		health = ((int) (jsEngine.get("health")));
 		isAxesOn = ((boolean) (jsEngine.get("isAxesOn")));
 		rotationSpeed = ((double) (jsEngine.get("rotationSpeed")));
-		bounceSpeed = ((double) (jsEngine.get("bounceSpeed")));
 
 		(engine.getRenderSystem()).setWindowDimensions(1900, 1000);
 
@@ -293,14 +300,12 @@ public class MyGame extends VariableFrameRateGame {
 		// ----------------- Node Controllers -------------------
 		rc = new RotationController(engine, new Vector3f(0, 1, 0), (float) rotationSpeed);
 		(engine.getSceneGraph()).addNodeController(rc);
-		bc = new BounceController(engine, (float) bounceSpeed);
-		(engine.getSceneGraph()).addNodeController(bc);
+	
 
 		rc.toggle();
-		bc.toggle();
 
-		rc.addTarget(sphere);
-		bc.addTarget(sphere);
+		rc.addTarget(lightning);
+		rc.addTarget(miniLightning);
 
 		// --------------View Port---------------------
 		(engine.getRenderSystem()).addViewport("VIEWPORT", 0.75f, 0f, 0.25f, 0.25f);
@@ -451,6 +456,13 @@ public class MyGame extends VariableFrameRateGame {
 		
 		setEarParameters();
 
+		// Distance Detection
+		if(avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
+			miniLightning.getRenderStates().enableRendering();
+			// new big lightning spot
+			// increase avatar speed
+		}
+ 
 		// Update Physics
 		if (running = true) {
 			Matrix4f mat = new Matrix4f();
@@ -577,7 +589,7 @@ public class MyGame extends VariableFrameRateGame {
 			activeLasers.addLast(laser);
 			inactiveLasers.removeFirst();
 		} else {
-			GameObject gameObject = new GameObject(GameObject.root(), sphereS, lasertx);
+			GameObject gameObject = new GameObject(GameObject.root(), laserBeamS, lasertx);
 			gameObject.setLocalScale(new Matrix4f().scaling(.05f));
 			float vals[] = new float[16];
 			int uid = physicsEngine.nextUID();

@@ -4,7 +4,6 @@ var isAxesOn = false;
 
 // Node Controller 
 var rotationSpeed = 0.001;
-var bounceSpeed = 0.02
 
 
 // Initial Avatar 
