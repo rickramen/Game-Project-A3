@@ -105,12 +105,7 @@ public class MyGame extends VariableFrameRateGame {
 	private boolean isClientConnected = false;
 
 	// Physics Engine
-	private GameObject grenade1;
-	private ObjShape grenadeS;
-	private TextureImage grenadetx;
-
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject grenade1P;
 
 	// Sound
 	private IAudioManager audioMgr;
@@ -152,7 +147,6 @@ public class MyGame extends VariableFrameRateGame {
 
 		sphereS = new Sphere();
 
-		grenadeS = new Sphere();
 
 		laserBeamS = new Sphere();
 	
@@ -168,7 +162,6 @@ public class MyGame extends VariableFrameRateGame {
 		ghostT = new TextureImage("zombie.png");
 		spheretx = new TextureImage("sob.png");
 
-		grenadetx = new TextureImage("grenade.png");
 
 		lasertx = new TextureImage("energy.png");
 	
@@ -216,6 +209,10 @@ public class MyGame extends VariableFrameRateGame {
 		(y.getRenderStates()).setColor(new Vector3f(0f, 1f, 0f));
 		(z.getRenderStates()).setColor(new Vector3f(0f, 0f, 1f));
 
+		x.getRenderStates().disableRendering();
+		y.getRenderStates().disableRendering();
+		z.getRenderStates().disableRendering();
+
 		// build terrain
 		terr = new GameObject(GameObject.root(), terrS, terrtx);
 		initialTranslation = (new Matrix4f().translation((float) terrainLocX, (float) (terrainLocY),
@@ -253,11 +250,6 @@ public class MyGame extends VariableFrameRateGame {
 		zombie.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling((float) zombieScale);
 		zombie.setLocalScale(initialScale);
-
-		// Test Physics Objects
-		grenade1 = new GameObject(GameObject.root(), grenadeS, grenadetx);
-		grenade1.setLocalTranslation((new Matrix4f()).translation(0, 4, 0));
-		grenade1.setLocalScale((new Matrix4f()).scaling(.35f));
 
 
 	}
@@ -432,15 +424,6 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		Matrix4f translation = new Matrix4f(grenade1.getLocalTranslation());
-		tempTransform = toDoubleArray(translation.get(vals));
-		grenade1P = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, tempTransform, .35f);
-
-		grenade1P.setBounciness(.2f);
-		grenade1.setPhysicsObject(grenade1P);
-
-		tempTransform = toDoubleArray(translation.get(vals));
-
 		
 
 		
@@ -460,6 +443,13 @@ public class MyGame extends VariableFrameRateGame {
 		deltaTime = elapsedTime * 0.03;
 		
 		updateProjectile();
+
+		// Update Sound
+		zombieSound.setLocation(zombie.getWorldLocation());
+		ambientSound.setLocation(terr.getWorldLocation());
+		laserSound.setLocation(avatar.getWorldLocation());
+		
+		setEarParameters();
 
 		// Update Physics
 		if (running = true) {
@@ -542,6 +532,8 @@ public class MyGame extends VariableFrameRateGame {
 		super.keyPressed(e);
 	}
 
+	
+
 	// Physics Engine Collision Check
 	private void checkForCollisions(){ 
         com.bulletphysics.dynamics.DynamicsWorld dynamicsWorld;
@@ -567,13 +559,10 @@ public class MyGame extends VariableFrameRateGame {
 			}
 		}
 
-		// Update Sound
-		zombieSound.setLocation(zombie.getWorldLocation());
-		ambientSound.setLocation(terr.getWorldLocation());
-		laserSound.setLocation(avatar.getWorldLocation());
-		
-		setEarParameters();
+
 	}
+
+	
 
 	// Lasers
 	private LinkedList<Laser> activeLasers = new LinkedList<Laser>();
