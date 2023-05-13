@@ -86,7 +86,7 @@ public class MyGame extends VariableFrameRateGame {
 	private GameObject avatar, zombie;
 	private AnimatedShape zombieS;
 	private ObjShape ghostS, robotS;
-	private TextureImage ghostT, zombietx, robottx;
+	private TextureImage ghostT, zombietx, robottx, robottx2;
 
 	private GameObject lightning, miniLightning;
 	private ObjShape lightningS;
@@ -116,6 +116,11 @@ public class MyGame extends VariableFrameRateGame {
 
 	// NPC
 	// private GhostNPC zombie;
+
+	// Update Variables
+	private float powerUpTime;
+	private double speed;
+
 
 	public MyGame(String serverAddress, int serverPort, String protocol) {
 		super();
@@ -160,7 +165,8 @@ public class MyGame extends VariableFrameRateGame {
 		hills = new TextureImage("heightmap.png");
 
 		zombietx = new TextureImage("zombie.png");
-		robottx = new TextureImage("robotunwraped2.png");
+		robottx = new TextureImage("robotunwraped.png");
+		robottx2 = new TextureImage("robotunwraped2.png");
 		ghostT = new TextureImage("zombie.png");
 		lightningtx = new TextureImage("speed.png");
 
@@ -199,6 +205,8 @@ public class MyGame extends VariableFrameRateGame {
 		terrainScaleX = ((double) (jsEngine.get("terrainScaleX")));
 		terrainScaleY = ((double) (jsEngine.get("terrainScaleY")));
 		terrainScaleZ = ((double) (jsEngine.get("terrainScaleZ")));
+		speed = ((double) (jsEngine.get("speed")));
+
 
 		// build the world X, Y, Z axes to show origin
 		x = new GameObject(GameObject.root(), linxS);
@@ -229,7 +237,7 @@ public class MyGame extends VariableFrameRateGame {
 		avatar.setLocalScale(initialScale);
 		avatar.getRenderStates().setModelOrientationCorrection(
 				(new Matrix4f()).rotationY((float) java.lang.Math.toRadians(180.0f)));
-
+	
 		// build lightning
 		lightning = new GameObject(GameObject.root(), lightningS, lightningtx);
 		initialTranslation = (new Matrix4f()).translation(
@@ -344,6 +352,10 @@ public class MyGame extends VariableFrameRateGame {
 		ViewportZoomInAction viewportZoomInAction = new ViewportZoomInAction(this);
 		ViewportZoomOutAction viewportZoomOutAction = new ViewportZoomOutAction(this);
 
+		Avatar1Action avatar1Action = new Avatar1Action(this);
+		Avatar2Action avatar2Action = new Avatar2Action(this);
+
+
 		// Keyboard
 		im.associateActionWithAllKeyboards(
 				net.java.games.input.Component.Identifier.Key._1, toggleAxesAction,
@@ -362,6 +374,13 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, fireAction,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+
+				
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.X, avatar1Action,
+		InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.Z, avatar2Action,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		im.associateActionWithAllKeyboards(
@@ -442,6 +461,8 @@ public class MyGame extends VariableFrameRateGame {
 
 		updateProjectile();
 
+
+
 		// Update Sound
 		zombieSound.setLocation(zombie.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
@@ -449,12 +470,6 @@ public class MyGame extends VariableFrameRateGame {
 
 		setEarParameters();
 
-		// Distance Detection
-		if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
-			miniLightning.getRenderStates().enableRendering();
-			// new big lightning spot
-			// increase avatar speed
-		}
 
 		// Update Physics
 		if (running = true) {
@@ -542,7 +557,26 @@ public class MyGame extends VariableFrameRateGame {
 	
 		}
 
-		im.update((float) elapsedTime);
+		// Power Up
+
+		if (powerUpTime > 0) {
+			powerUpTime -=0.1f * elapsedTime;
+		} else {
+			powerUpTime = 0;
+			speed = 0.02;
+			miniLightning.getRenderStates().disableRendering();
+		}
+
+		if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
+			miniLightning.getRenderStates().enableRendering();
+			powerUpTime = 1000;
+			speed = 0.05;
+
+			// new big lightning spot
+			// increase avatar speed
+		} 
+
+		im.update((float)elapsedTime);
 		orbitController.updateCameraPosition();
 		zombieS.updateAnimation();
 		processNetworking((float) elapsedTime);
@@ -806,6 +840,18 @@ public class MyGame extends VariableFrameRateGame {
 
 	public TextureImage getNPCtexture() {
 		return zombietx;
+	}
+
+	public double getSpeed() {
+		return speed;
+	}
+
+	public TextureImage getAvatar1texture() {
+		return robottx;
+	}
+
+	public TextureImage getAvatar2texture() {
+		return robottx2;
 	}
 
 	// -------------PHYSICS UTILITY -------------

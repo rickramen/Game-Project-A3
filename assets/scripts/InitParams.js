@@ -5,6 +5,8 @@ var isAxesOn = false;
 // Node Controller 
 var rotationSpeed = 0.001;
 
+// Speed Script
+var speed = 0.02;
 
 // Initial Avatar 
 var avatarPosX = 0.0;
