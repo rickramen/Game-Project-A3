@@ -525,15 +525,21 @@ public class MyGame extends VariableFrameRateGame {
 
 		zombie.setLocalLocation(new Vector3f(zombieLoc.x(), zombieHeight, zombieLoc.z()));
 
-		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 2) {
+		// Chase
+
+		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
 			float time = (float) elapsedTime % 10;
+			zombie.lookAt(avatar);
 			Vector3f oldPosition = zombie.getWorldLocation();
 			Vector3f targetLocation = avatar.getLocalLocation();
-			Vector4f chaseDirection = new Vector4f(0f, 0f, 1f, 1f);
-			chaseDirection.mul(avatar.getWorldRotation());
-			chaseDirection.mul(.001f * time);
+			Vector4f chaseDirection = new Vector4f(1f, 1f, 1f, 1f);
+
+			chaseDirection.mul(targetLocation.x() - oldPosition.x(), targetLocation.y() - oldPosition.y() , targetLocation.z() - oldPosition.z(), 0f);
+			chaseDirection.mul(.0001f * time); // increases float increases zombie speed, maybe increase with zombie killed, 
 			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
 			zombie.setLocalLocation(newPosition);
+
+	
 		}
 
 		im.update((float) elapsedTime);
