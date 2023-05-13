@@ -1,6 +1,7 @@
 package a3;
 
 import tage.*;
+import tage.Light.LightType;
 import tage.nodeControllers.*;
 import tage.shapes.*;
 import tage.input.*;
@@ -274,10 +275,13 @@ public class MyGame extends VariableFrameRateGame {
 	@Override
 	public void initializeLights() {
 		// Ambient light
-		Light.setGlobalAmbient(0.5f, 0.5f, 0.5f);
+		Light.setGlobalAmbient(0.2f, 0.2f, 0.2f);
 		// Positional light
 		light1 = new Light();
-		light1.setLocation(new Vector3f(5.0f, 4.0f, 2.0f));
+		light1.setType(LightType.SPOTLIGHT);
+		light1.setAmbient(1.0f, 1.0f, 1.0f);
+		light1.setSpecular(0, 0, 0);
+		light1.setLocation(new Vector3f((float)avatarPosX,(float) avatarPosY, (float)avatarPosZ));
 		(engine.getSceneGraph()).addLight(light1);
 	}
 
@@ -564,6 +568,10 @@ public class MyGame extends VariableFrameRateGame {
 		float zombieHeight = terr.getHeight(zombieLoc.x(), zombieLoc.z());
 
 		zombie.setLocalLocation(new Vector3f(zombieLoc.x(), zombieHeight, zombieLoc.z()));
+
+		// Update Lights
+		light1.setLocation(avatar.getWorldLocation());
+		light1.setDirection(avatar.getWorldForwardVector());
 
 		// Chase
 		chaseAvatar();
