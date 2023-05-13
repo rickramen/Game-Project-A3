@@ -106,6 +106,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	// Physics Engine
 	private PhysicsEngine physicsEngine;
+	private PhysicsObject zomBoxP;
 
 	// Sound
 	private IAudioManager audioMgr;
@@ -120,7 +121,6 @@ public class MyGame extends VariableFrameRateGame {
 	// Update Variables
 	private float powerUpTime;
 	private double speed;
-
 
 	public MyGame(String serverAddress, int serverPort, String protocol) {
 		super();
@@ -207,7 +207,6 @@ public class MyGame extends VariableFrameRateGame {
 		terrainScaleZ = ((double) (jsEngine.get("terrainScaleZ")));
 		speed = ((double) (jsEngine.get("speed")));
 
-
 		// build the world X, Y, Z axes to show origin
 		x = new GameObject(GameObject.root(), linxS);
 		y = new GameObject(GameObject.root(), linyS);
@@ -237,7 +236,7 @@ public class MyGame extends VariableFrameRateGame {
 		avatar.setLocalScale(initialScale);
 		avatar.getRenderStates().setModelOrientationCorrection(
 				(new Matrix4f()).rotationY((float) java.lang.Math.toRadians(180.0f)));
-	
+
 		// build lightning
 		lightning = new GameObject(GameObject.root(), lightningS, lightningtx);
 		initialTranslation = (new Matrix4f()).translation(
@@ -355,7 +354,6 @@ public class MyGame extends VariableFrameRateGame {
 		Avatar1Action avatar1Action = new Avatar1Action(this);
 		Avatar2Action avatar2Action = new Avatar2Action(this);
 
-
 		// Keyboard
 		im.associateActionWithAllKeyboards(
 				net.java.games.input.Component.Identifier.Key._1, toggleAxesAction,
@@ -376,10 +374,9 @@ public class MyGame extends VariableFrameRateGame {
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, fireAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
-				
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.X, avatar1Action,
-		InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-		
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.Z, avatar2Action,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
@@ -445,10 +442,15 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
+		float zomBoxSize[] = { 2f, 2f, 2f };
+		float tempTValues[] = new float[16];
+		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
+		zomBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, zomBoxSize);
+		zombie.setPhysicsObject(zomBoxP);
+
 		updateProjectile();
 
 		// Initialize Sound
-
 		initAudio();
 	}
 
@@ -461,8 +463,6 @@ public class MyGame extends VariableFrameRateGame {
 
 		updateProjectile();
 
-
-
 		// Update Sound
 		zombieSound.setLocation(zombie.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
@@ -470,6 +470,8 @@ public class MyGame extends VariableFrameRateGame {
 
 		setEarParameters();
 
+		// Update zombie physics
+		updateZomBoxLoc();
 
 		// Update Physics
 		if (running = true) {
@@ -541,26 +543,12 @@ public class MyGame extends VariableFrameRateGame {
 		zombie.setLocalLocation(new Vector3f(zombieLoc.x(), zombieHeight, zombieLoc.z()));
 
 		// Chase
-
-		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
-			float time = (float) elapsedTime % 10;
-			zombie.lookAt(avatar);
-			Vector3f oldPosition = zombie.getWorldLocation();
-			Vector3f targetLocation = avatar.getLocalLocation();
-			Vector4f chaseDirection = new Vector4f(1f, 1f, 1f, 1f);
-
-			chaseDirection.mul(targetLocation.x() - oldPosition.x(), targetLocation.y() - oldPosition.y() , targetLocation.z() - oldPosition.z(), 0f);
-			chaseDirection.mul(.0001f * time); // increases float increases zombie speed, maybe increase with zombie killed, 
-			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
-			zombie.setLocalLocation(newPosition);
-
-	
-		}
+		chaseAvatar();
 
 		// Power Up
 
 		if (powerUpTime > 0) {
-			powerUpTime -=0.1f * elapsedTime;
+			powerUpTime -= 0.1f * elapsedTime;
 		} else {
 			powerUpTime = 0;
 			speed = 0.02;
@@ -574,9 +562,9 @@ public class MyGame extends VariableFrameRateGame {
 
 			// new big lightning spot
 			// increase avatar speed
-		} 
+		}
 
-		im.update((float)elapsedTime);
+		im.update((float) elapsedTime);
 		orbitController.updateCameraPosition();
 		zombieS.updateAnimation();
 		processNetworking((float) elapsedTime);
@@ -601,7 +589,7 @@ public class MyGame extends VariableFrameRateGame {
 			for (int j = 0; j < manifold.getNumContacts(); j++) {
 				contactPoint = manifold.getContactPoint(j);
 				if (contactPoint.getDistance() < 0.0f) {
-					// System.out.println("---- hit between " + obj1 + " and " + obj2);
+					System.out.println("---- hit between " + obj1 + " and " + obj2);
 					break;
 				}
 			}
@@ -810,6 +798,28 @@ public class MyGame extends VariableFrameRateGame {
 
 	// --------------------- CHASE --------------
 	public void chaseAvatar() {
+		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
+			float time = (float) elapsedTime % 10;
+			zombie.lookAt(avatar);
+			Vector3f oldPosition = zombie.getWorldLocation();
+			Vector3f targetLocation = avatar.getLocalLocation();
+			Vector4f chaseDirection = new Vector4f(1f, 1f, 1f, 1f);
+
+			chaseDirection.mul(targetLocation.x() - oldPosition.x(), targetLocation.y() - oldPosition.y(),
+					targetLocation.z() - oldPosition.z(), 0f);
+			chaseDirection.mul(.0001f * time); // increases float increases zombie speed, maybe increase with zombie
+												// killed,
+			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
+			zombie.setLocalLocation(newPosition);
+		}
+	}
+
+	// --------------UPDATE ZOMBOX POSITION -------------
+	public void updateZomBoxLoc() {
+		double[] tempTransform;
+		float tempTValues[] = new float[16];
+		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
+		zomBoxP.setTransform(tempTransform);
 	}
 
 	// --------------------- GETTERS -------------
