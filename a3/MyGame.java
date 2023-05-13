@@ -62,8 +62,11 @@ public class MyGame extends VariableFrameRateGame {
 	private Camera vpCam;
 	private CameraOrbit3D orbitController;
 
+	private double lastFrameTime, currFrameTime, elapsTime;
+
 	private double startTime, prevTime, elapsedTime, deltaTime;
 	private int health;
+	private int timerLength;
 
 	private boolean isAxesOn;
 	private int sunset;
@@ -280,6 +283,10 @@ public class MyGame extends VariableFrameRateGame {
 
 	@Override
 	public void initializeGame() {
+		lastFrameTime = System.currentTimeMillis();
+		currFrameTime = System.currentTimeMillis();
+		elapsTime = 0.0;
+
 		prevTime = System.currentTimeMillis();
 		startTime = System.currentTimeMillis();
 
@@ -292,6 +299,7 @@ public class MyGame extends VariableFrameRateGame {
 		this.runScript(scriptFile1);
 
 		health = ((int) (jsEngine.get("health")));
+		timerLength = ((int) (jsEngine.get("timerLength")));
 		isAxesOn = ((boolean) (jsEngine.get("isAxesOn")));
 		rotationSpeed = ((double) (jsEngine.get("rotationSpeed")));
 
@@ -321,7 +329,7 @@ public class MyGame extends VariableFrameRateGame {
 		vp.setBorderWidth(4);
 		vp.setBorderColor(0.0f, 1.0f, 0.0f);
 
-		// Set viewport camera above avatar avatar
+		// Set viewport camera above avatar
 		vpCam.setLocation(new Vector3f(avatar.getWorldLocation().x(),
 				avatar.getWorldLocation().y() + 10,
 				avatar.getWorldLocation().z()));
@@ -442,7 +450,7 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		float zomBoxSize[] = { 2f, 2f, 2f };
+		float zomBoxSize[] = { 2f, 3f, 2f };
 		float tempTValues[] = new float[16];
 		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
 		zomBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, zomBoxSize);
@@ -457,6 +465,11 @@ public class MyGame extends VariableFrameRateGame {
 	@Override
 	public void update() {
 		// Calculate elapsed time
+		lastFrameTime = currFrameTime;
+		currFrameTime = System.currentTimeMillis();
+		elapsTime += (currFrameTime - lastFrameTime) / 1000.0;
+		int elapsTimeSec = Math.round((float) elapsTime);
+
 		elapsedTime = System.currentTimeMillis() - prevTime;
 		prevTime = System.currentTimeMillis();
 		deltaTime = elapsedTime * 0.03;
@@ -509,12 +522,22 @@ public class MyGame extends VariableFrameRateGame {
 		float mainActualHeight = engine.getRenderSystem().getViewport("MAIN").getActualHeight();
 
 		String healthCounterStr = Integer.toString(health);
-		String dispStr1 = "Health = " + healthCounterStr;
+		String dispStr1 = "Enemy Health = " + healthCounterStr;
 		Vector3f hud1Color = new Vector3f(1, 0, 0); // red
 		Vector3f hud2Color = new Vector3f(0, 0, 1); // blue
 		Vector3f hud3Color = new Vector3f(0, 1, 0); // green
+
 		(engine.getHUDmanager()).setHUD1(dispStr1,
 				hud1Color,
+				(int) (mainActualWidth / 2 + 10),
+				(int) (mainActualHeight - 25));
+
+		int timeLeft = timerLength - elapsTimeSec;
+		String timerStr = Integer.toString(timeLeft);
+		String dispStr2 = "Time Left = " + timerStr;
+
+		(engine.getHUDmanager()).setHUD1(dispStr2,
+				hud2Color,
 				(int) (mainRelativeLeft * mainActualWidth + 10),
 				(int) (mainRelativeBottom * mainActualHeight + 10));
 

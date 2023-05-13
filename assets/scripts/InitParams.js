@@ -5,6 +5,9 @@ var isAxesOn = false;
 // Node Controller 
 var rotationSpeed = 0.001;
 
+// Game Timer Length
+var timerLength = 60;
+
 // Speed Script
 var speed = 0.02;
 
