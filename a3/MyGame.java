@@ -70,7 +70,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	private boolean isAxesOn, toggleLights;
 	private int sunset;
-	private Light light1;
+	private Light light1, light2, light3;
 
 	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
 	private double alienScale;
@@ -300,6 +300,20 @@ public class MyGame extends VariableFrameRateGame {
 		light1.setSpecular(0, 0, 0);
 		light1.setLocation(new Vector3f((float) avatarPosX, (float) avatarPosY, (float) avatarPosZ));
 		(engine.getSceneGraph()).addLight(light1);
+
+		light2 = new Light();
+		light2.setSpecular(0, 0, 0);
+
+		light2.setType(LightType.POSITIONAL);
+		light2.setLocation(new Vector3f(lightning.getWorldLocation()));
+		(engine.getSceneGraph()).addLight(light2);
+
+		light3 = new Light();
+		light3.setSpecular(0, 0, 0);
+
+		light3.setType(LightType.POSITIONAL);
+		light3.setLocation(new Vector3f(power.getWorldLocation()));
+		(engine.getSceneGraph()).addLight(light3);
 	}
 
 	@Override
@@ -604,6 +618,9 @@ public class MyGame extends VariableFrameRateGame {
 		// Update Lights
 		light1.setLocation(avatar.getWorldLocation());
 		light1.setDirection(avatar.getWorldForwardVector());
+		light2.setLocation(lightning.getLocalLocation());
+		light3.setLocation(power.getLocalLocation());
+
 
 		// Chase
 		chaseAvatar();
