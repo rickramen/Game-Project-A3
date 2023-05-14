@@ -68,13 +68,13 @@ public class MyGame extends VariableFrameRateGame {
 	private double startTime, prevTime, elapsedTime, deltaTime;
 	private int timerLength;
 
-	private boolean isAxesOn, toggleLights;
+	private boolean isAxesOn, toggleLights, isAvatarAlive;
 	private int sunset;
 	private Light light1, light2, light3;
 
 	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
-	private double alienScale;
-	private double rotationSpeed;
+	private double alienScale, buffScale, miniBuffScale;
+	private double rotationSpeed, alienWalkAniSpeed;
 	private double terrainLocX, terrainLocY, terrainLocZ, terrainScaleX, terrainScaleY, terrainScaleZ;
 
 	// ---- GameObject Declarations ----
@@ -209,6 +209,9 @@ public class MyGame extends VariableFrameRateGame {
 		terrainScaleX = ((double) (jsEngine.get("terrainScaleX")));
 		terrainScaleY = ((double) (jsEngine.get("terrainScaleY")));
 		terrainScaleZ = ((double) (jsEngine.get("terrainScaleZ")));
+		buffScale = ((double) (jsEngine.get("buffScale")));
+		miniBuffScale = ((double) (jsEngine.get("miniBuffScale")));
+		alienWalkAniSpeed = ((double) (jsEngine.get("alienWalkAniSpeed")));
 
 		// build the world X, Y, Z axes to show origin
 		x = new GameObject(GameObject.root(), linxS);
@@ -240,37 +243,37 @@ public class MyGame extends VariableFrameRateGame {
 		avatar.getRenderStates().setModelOrientationCorrection(
 				(new Matrix4f()).rotationY((float) java.lang.Math.toRadians(180.0f)));
 
-		// build lightning
+		// build speed buff
 		lightning = new GameObject(GameObject.root(), lightningS, lightningtx);
 		initialTranslation = (new Matrix4f()).translation(
 				setRandomLocation(),
 				1,
 				setRandomLocation());
 		lightning.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(0.5f);
+		initialScale = (new Matrix4f()).scaling((float) buffScale);
 		lightning.setLocalScale(initialScale);
 
 		miniLightning = new GameObject(GameObject.root(), lightningS, lightningtx);
 		miniLightning.setLocalLocation(avatar.getLocalLocation().add(new Vector3f(0.0f, 0.0f, 1.5f)));
-		miniLightning.setLocalScale(new Matrix4f().scaling(1f));
+		miniLightning.setLocalScale(new Matrix4f().scaling((float) miniBuffScale));
 		miniLightning.setParent(avatar);
 		miniLightning.propagateTranslation(true);
 		miniLightning.propagateRotation(true);
 		miniLightning.getRenderStates().disableRendering();
 
-		// build lightning
+		// build power buff
 		power = new GameObject(GameObject.root(), lightningS, powertx);
 		initialTranslation = (new Matrix4f()).translation(
 				setRandomLocation(),
 				1,
 				setRandomLocation());
 		power.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(0.5f);
+		initialScale = (new Matrix4f().scaling((float) buffScale));
 		power.setLocalScale(initialScale);
 
 		minipower = new GameObject(GameObject.root(), lightningS, powertx);
 		minipower.setLocalLocation(avatar.getLocalLocation().add(new Vector3f(1.5f, 0.0f, 0.0f)));
-		minipower.setLocalScale(new Matrix4f().scaling(1f));
+		minipower.setLocalScale(new Matrix4f().scaling((float) miniBuffScale));
 		minipower.setParent(avatar);
 		minipower.propagateTranslation(true);
 		minipower.propagateRotation(true);
@@ -285,7 +288,7 @@ public class MyGame extends VariableFrameRateGame {
 		alien.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling((float) alienScale);
 		alien.setLocalScale(initialScale);
-		alienS.playAnimation("WALK", 0.3f, AnimatedShape.EndType.LOOP, 0);
+		alienS.playAnimation("WALK", (float) alienWalkAniSpeed, AnimatedShape.EndType.LOOP, 0);
 
 	}
 
@@ -340,6 +343,7 @@ public class MyGame extends VariableFrameRateGame {
 		speed = ((double) (jsEngine.get("speed")));
 		strength = ((int) (jsEngine.get("strength")));
 		toggleLights = ((boolean) (jsEngine.get("toggleLights")));
+		isAvatarAlive = ((boolean) (jsEngine.get("isAvatarAlive")));
 
 		(engine.getRenderSystem()).setWindowDimensions(1900, 1000);
 
@@ -392,22 +396,13 @@ public class MyGame extends VariableFrameRateGame {
 
 		ToggleAxesAction toggleAxesAction = new ToggleAxesAction(this);
 
-		ViewportUpAction viewportUpAction = new ViewportUpAction(this);
-		ViewportDownAction viewportDownAction = new ViewportDownAction(this);
-		ViewportLeftAction viewportLeftAction = new ViewportLeftAction(this);
-		ViewportRightAction viewportRightAction = new ViewportRightAction(this);
-		ViewportZoomInAction viewportZoomInAction = new ViewportZoomInAction(this);
-		ViewportZoomOutAction viewportZoomOutAction = new ViewportZoomOutAction(this);
-
 		Avatar1Action avatar1Action = new Avatar1Action(this);
 		Avatar2Action avatar2Action = new Avatar2Action(this);
 
 		ToggleLightAction toggleLightAction = new ToggleLightAction(this);
 
 		// Keyboard
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key._1, toggleAxesAction,
-				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+
 		im.associateActionWithAllKeyboards(
 				net.java.games.input.Component.Identifier.Key.W, fwdAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -424,34 +419,24 @@ public class MyGame extends VariableFrameRateGame {
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, fireAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.X, avatar1Action,
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key._1, avatar1Action,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.Z, avatar2Action,
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key._2, avatar2Action,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key._3, toggleAxesAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.C, toggleLightAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key.I, viewportUpAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key.K, viewportDownAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key.J, viewportLeftAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key.L, viewportRightAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key._0, viewportZoomInAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(
-				net.java.games.input.Component.Identifier.Key._9, viewportZoomOutAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-
 		// Gamepad
+
+		im.associateActionWithAllGamepads(
+				net.java.games.input.Component.Identifier.Button._1, fireAction,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		im.associateActionWithAllGamepads(
+				net.java.games.input.Component.Identifier.Button._2, toggleLightAction,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllGamepads(
 				net.java.games.input.Component.Identifier.Button._7, toggleAxesAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
@@ -461,24 +446,13 @@ public class MyGame extends VariableFrameRateGame {
 		im.associateActionWithAllGamepads(
 				net.java.games.input.Component.Identifier.Axis.X, turnAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+
 		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Axis.Button._3, viewportUpAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				net.java.games.input.Component.Identifier.Button._4, avatar1Action,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Axis.Button._0, viewportDownAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Axis.Button._1, viewportRightAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Axis.Button._2, viewportLeftAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Axis.Button._4, viewportZoomOutAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Axis.Button._5, viewportZoomInAction,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				net.java.games.input.Component.Identifier.Button._5, avatar2Action,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		// --Initialize Physics System--
 		physicsObjects = new HashMap<Integer, GameObject>();
@@ -512,8 +486,6 @@ public class MyGame extends VariableFrameRateGame {
 		lastFrameTime = currFrameTime;
 		currFrameTime = System.currentTimeMillis();
 		elapsTime += (currFrameTime - lastFrameTime) / 1000.0;
-		
-	
 
 		int elapsTimeSec = Math.round((float) elapsTime);
 
@@ -522,6 +494,11 @@ public class MyGame extends VariableFrameRateGame {
 		deltaTime = elapsedTime * 0.03;
 
 		updateProjectile();
+
+		// Track viewport camera with avatar
+		vpCam.setLocation(new Vector3f(avatar.getWorldLocation().x(),
+				avatar.getWorldLocation().y + 15,
+				avatar.getWorldLocation().z()));
 
 		// Update Sound
 		alienSound.setLocation(alien.getWorldLocation());
@@ -591,6 +568,10 @@ public class MyGame extends VariableFrameRateGame {
 				(int) (mainActualHeight - 25));
 
 		int timeLeft = timerLength - elapsTimeSec;
+		if (timeLeft < 0) {
+			timeLeft = 0;
+		}
+
 		String timerStr = Integer.toString(timeLeft);
 		String dispStr2 = "Time Left = " + timerStr;
 
@@ -619,7 +600,6 @@ public class MyGame extends VariableFrameRateGame {
 		light1.setLocation(avatar.getWorldLocation());
 		light1.setDirection(avatar.getWorldForwardVector());
 
-
 		// Chase
 		chaseAvatar();
 
@@ -630,16 +610,18 @@ public class MyGame extends VariableFrameRateGame {
 		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) <= 1) {
 			avatar.getRenderStates().disableRendering();
 			toggleLightOff();
-		} else {
-			im.update((float) elapsedTime);
+			alienS.stopAnimation();
+			isAvatarAlive = false;
 		}
 
 		// Win Condition
-		if(health <= 0) {
+		if (health <= 0) {
 			health = 0;
 			alien.getRenderStates().disableRendering();
 			alienSound.stop();
 		}
+
+		im.update((float) elapsedTime);
 		orbitController.updateCameraPosition();
 		alienS.updateAnimation();
 		processNetworking((float) elapsedTime);
@@ -667,7 +649,7 @@ public class MyGame extends VariableFrameRateGame {
 				contactPoint = manifold.getContactPoint(j);
 				if (contactPoint.getDistance() < 0.0f) {
 					updateEnemyHP();
-					System.out.println("---- hit between " + obj1 + " and " + obj2);
+					// System.out.println("---- hit between " + obj1 + " and " + obj2);
 					break;
 				}
 			}
@@ -872,7 +854,6 @@ public class MyGame extends VariableFrameRateGame {
 		laserSound.play();
 
 	}
-	
 
 	// -------------- TOGGLE LIGHTS ----------------
 	public void toggleLightOn() {
@@ -885,7 +866,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	// --------------------- CHASE BEHAVIOR --------------
 	public void chaseAvatar() {
-		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
+		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) > 1 && isAvatarAlive) {
 			float time = (float) elapsedTime % 10;
 			alien.lookAt(avatar);
 			Vector3f oldPosition = alien.getWorldLocation();
@@ -915,54 +896,55 @@ public class MyGame extends VariableFrameRateGame {
 
 	// ------------- BUFF HANDLER ---------------------
 	public void updateBuffs() {
-        Matrix4f newTranslation;
-        // Speed buff
-        if (powerUpTime > 0) {
-            powerUpTime -= 0.1f * elapsedTime;
-        } else {
-            powerUpTime = 0;
-            speed = 0.02;
-            miniLightning.getRenderStates().disableRendering();
+		if (isAvatarAlive) {
+			Matrix4f newTranslation;
+			// Speed buff
+			if (powerUpTime > 0) {
+				powerUpTime -= 0.1f * elapsedTime;
+			} else {
+				powerUpTime = 0;
+				speed = 0.02;
+				miniLightning.getRenderStates().disableRendering();
 
-        }
+			}
 
-        if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
-            miniLightning.getRenderStates().enableRendering();
-            powerUpTime = 1000;
-            speed = 0.05;
+			if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
+				miniLightning.getRenderStates().enableRendering();
+				powerUpTime = 1000;
+				speed = 0.05;
 
-            newTranslation = (new Matrix4f()).translation(
-                    setRandomLocation(),
-                    1,
-                    setRandomLocation());
-            lightning.setLocalTranslation(newTranslation);
-			light2.setLocation(lightning.getLocalLocation());
+				newTranslation = (new Matrix4f()).translation(
+						setRandomLocation(),
+						1,
+						setRandomLocation());
+				lightning.setLocalTranslation(newTranslation);
+				light2.setLocation(lightning.getLocalLocation());
 
-        }
+			}
 
-        // Power buff
-        if (strengthUpTime > 0) {
-            strengthUpTime -= 0.1f * elapsedTime;
-        } else {
-            strengthUpTime = 0;
-            strength = 1;
-            minipower.getRenderStates().disableRendering();
-        }
+			// Power buff
+			if (strengthUpTime > 0) {
+				strengthUpTime -= 0.1f * elapsedTime;
+			} else {
+				strengthUpTime = 0;
+				strength = 1;
+				minipower.getRenderStates().disableRendering();
+			}
 
-        if (avatar.getLocalLocation().distance(power.getLocalLocation()) < 1.2) {
-            minipower.getRenderStates().enableRendering();
-            strengthUpTime = 1000;
-            strength = 3;
+			if (avatar.getLocalLocation().distance(power.getLocalLocation()) < 1.2) {
+				minipower.getRenderStates().enableRendering();
+				strengthUpTime = 1000;
+				strength = 3;
 
-            newTranslation = (new Matrix4f()).translation(
-                    setRandomLocation(),
-                    1,
-                    setRandomLocation());
-            power.setLocalTranslation(newTranslation);
-			light3.setLocation(power.getLocalLocation());
-
-        }
-    }
+				newTranslation = (new Matrix4f()).translation(
+						setRandomLocation(),
+						1,
+						setRandomLocation());
+				power.setLocalTranslation(newTranslation);
+				light3.setLocation(power.getLocalLocation());
+			}
+		}
+	}
 
 	// --------------------- GETTERS -------------
 

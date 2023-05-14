@@ -5,11 +5,13 @@ var isAxesOn = false;
 
 var toggleLights = true;
 
+var isAvatarAlive = true;
+
 // Node Controller 
 var rotationSpeed = 0.001;
 
 // Game Timer Length
-var timerLength = 60;
+var timerLength = 100;
 
 // Speed 
 var speed = 0.02;
@@ -17,14 +19,19 @@ var speed = 0.02;
 // Strength
 var strength = 1;
 
-// Initial Avatar 
+// Avatar 
 var avatarPosX = 0.0;
 var avatarPosY = 1.0;
 var avatarPosZ = 0.0;
 var avatarScale = 0.15; 
 
 // Alien
-var alienScale = .25;
+var alienScale = .5;
+var alienWalkAniSpeed = .3;
+
+// Buffs
+var buffScale = .5;
+var miniBuffScale = 1.0;
 
 // Terrain
 var terrainLocX = 0.0;
