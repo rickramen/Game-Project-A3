@@ -498,6 +498,9 @@ public class MyGame extends VariableFrameRateGame {
 		lastFrameTime = currFrameTime;
 		currFrameTime = System.currentTimeMillis();
 		elapsTime += (currFrameTime - lastFrameTime) / 1000.0;
+		
+	
+
 		int elapsTimeSec = Math.round((float) elapsTime);
 
 		elapsedTime = System.currentTimeMillis() - prevTime;
@@ -608,9 +611,21 @@ public class MyGame extends VariableFrameRateGame {
 		// Power Up
 		updateBuffs();
 
+		// Lose Condition
+		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) <= 1) {
+			avatar.getRenderStates().disableRendering();
+			toggleLightOff();
+		} else {
+			im.update((float) elapsedTime);
 
+		}
 
-		im.update((float) elapsedTime);
+		// Win Condition
+		if(health <= 0) {
+			health = 0;
+			alien.getRenderStates().disableRendering();
+			alienSound.stop();
+		}
 		orbitController.updateCameraPosition();
 		alienS.updateAnimation();
 		processNetworking((float) elapsedTime);
