@@ -618,8 +618,6 @@ public class MyGame extends VariableFrameRateGame {
 		// Update Lights
 		light1.setLocation(avatar.getWorldLocation());
 		light1.setDirection(avatar.getWorldForwardVector());
-		light2.setLocation(lightning.getLocalLocation());
-		light3.setLocation(power.getLocalLocation());
 
 
 		// Chase
@@ -634,7 +632,6 @@ public class MyGame extends VariableFrameRateGame {
 			toggleLightOff();
 		} else {
 			im.update((float) elapsedTime);
-
 		}
 
 		// Win Condition
@@ -875,6 +872,7 @@ public class MyGame extends VariableFrameRateGame {
 		laserSound.play();
 
 	}
+	
 
 	// -------------- TOGGLE LIGHTS ----------------
 	public void toggleLightOn() {
@@ -917,36 +915,54 @@ public class MyGame extends VariableFrameRateGame {
 
 	// ------------- BUFF HANDLER ---------------------
 	public void updateBuffs() {
-		// Speed buff
-		if (powerUpTime > 0) {
-			powerUpTime -= 0.1f * elapsedTime;
-		} else {
-			powerUpTime = 0;
-			speed = 0.02;
-			miniLightning.getRenderStates().disableRendering();
-		}
+        Matrix4f newTranslation;
+        // Speed buff
+        if (powerUpTime > 0) {
+            powerUpTime -= 0.1f * elapsedTime;
+        } else {
+            powerUpTime = 0;
+            speed = 0.02;
+            miniLightning.getRenderStates().disableRendering();
 
-		if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
-			miniLightning.getRenderStates().enableRendering();
-			powerUpTime = 1000;
-			speed = 0.05;
-		}
+        }
 
-		// Power buff
-		if (strengthUpTime > 0) {
-			strengthUpTime -= 0.1f * elapsedTime;
-		} else {
-			strengthUpTime = 0;
-			strength = 1;
-			minipower.getRenderStates().disableRendering();
-		}
+        if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
+            miniLightning.getRenderStates().enableRendering();
+            powerUpTime = 1000;
+            speed = 0.05;
 
-		if (avatar.getLocalLocation().distance(power.getLocalLocation()) < 1.2) {
-			minipower.getRenderStates().enableRendering();
-			strengthUpTime = 1000;
-			strength = 2;
-		}
-	}
+            newTranslation = (new Matrix4f()).translation(
+                    setRandomLocation(),
+                    1,
+                    setRandomLocation());
+            lightning.setLocalTranslation(newTranslation);
+			light2.setLocation(lightning.getLocalLocation());
+
+        }
+
+        // Power buff
+        if (strengthUpTime > 0) {
+            strengthUpTime -= 0.1f * elapsedTime;
+        } else {
+            strengthUpTime = 0;
+            strength = 1;
+            minipower.getRenderStates().disableRendering();
+        }
+
+        if (avatar.getLocalLocation().distance(power.getLocalLocation()) < 1.2) {
+            minipower.getRenderStates().enableRendering();
+            strengthUpTime = 1000;
+            strength = 3;
+
+            newTranslation = (new Matrix4f()).translation(
+                    setRandomLocation(),
+                    1,
+                    setRandomLocation());
+            power.setLocalTranslation(newTranslation);
+			light3.setLocation(power.getLocalLocation());
+
+        }
+    }
 
 	// --------------------- GETTERS -------------
 
