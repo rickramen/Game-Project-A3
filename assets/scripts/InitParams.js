@@ -38,6 +38,6 @@ var terrainLocX = 0.0;
 var terrainLocY = 0.0;
 var terrainLocZ = 0.0;
 
-var terrainScaleX = 30.0;
+var terrainScaleX = 50.0;
 var terrainScaleY = 1.0;
-var terrainScaleZ = 30.0;
+var terrainScaleZ = 50.0;

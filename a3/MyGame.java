@@ -875,7 +875,7 @@ public class MyGame extends VariableFrameRateGame {
 
 			chaseDirection.mul(targetLocation.x() - oldPosition.x(), targetLocation.y() - oldPosition.y(),
 					targetLocation.z() - oldPosition.z(), 0f);
-			chaseDirection.mul(.0001f * time); // increases float increases speed
+			chaseDirection.mul(.0008f * time); // increases float increases speed
 			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
 			alien.setLocalLocation(newPosition);
 		}
