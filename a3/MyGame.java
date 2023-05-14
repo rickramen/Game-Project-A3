@@ -66,7 +66,6 @@ public class MyGame extends VariableFrameRateGame {
 	private double lastFrameTime, currFrameTime, elapsTime;
 
 	private double startTime, prevTime, elapsedTime, deltaTime;
-	private int health;
 	private int timerLength;
 
 	private boolean isAxesOn;
@@ -92,9 +91,9 @@ public class MyGame extends VariableFrameRateGame {
 	private ObjShape ghostS, robotS;
 	private TextureImage ghostT, zombietx, robottx, robottx2;
 
-	private GameObject lightning, miniLightning;
+	private GameObject lightning, miniLightning, power, minipower;
 	private ObjShape lightningS;
-	private TextureImage lightningtx;
+	private TextureImage lightningtx, powertx;
 
 	private GameObject laserBeam;
 	private ObjShape laserBeamS;
@@ -119,12 +118,12 @@ public class MyGame extends VariableFrameRateGame {
 	private boolean running = true;
 	private float vals[] = new float[16];
 
-	// NPC
-	// private GhostNPC zombie;
-
 	// Update Variables
+	private int health;
 	private float powerUpTime;
 	private double speed;
+	private float strengthUpTime;
+	private int strength;
 
 	public MyGame(String serverAddress, int serverPort, String protocol) {
 		super();
@@ -173,6 +172,7 @@ public class MyGame extends VariableFrameRateGame {
 		robottx2 = new TextureImage("robotunwraped2.png");
 		ghostT = new TextureImage("zombie.png");
 		lightningtx = new TextureImage("speed.png");
+		powertx = new TextureImage("power.png");
 
 		lasertx = new TextureImage("energy.png");
 
@@ -209,7 +209,6 @@ public class MyGame extends VariableFrameRateGame {
 		terrainScaleX = ((double) (jsEngine.get("terrainScaleX")));
 		terrainScaleY = ((double) (jsEngine.get("terrainScaleY")));
 		terrainScaleZ = ((double) (jsEngine.get("terrainScaleZ")));
-		speed = ((double) (jsEngine.get("speed")));
 
 		// build the world X, Y, Z axes to show origin
 		x = new GameObject(GameObject.root(), linxS);
@@ -259,6 +258,24 @@ public class MyGame extends VariableFrameRateGame {
 		miniLightning.propagateRotation(true);
 		miniLightning.getRenderStates().disableRendering();
 
+		// build lightning
+		power = new GameObject(GameObject.root(), lightningS, powertx);
+		initialTranslation = (new Matrix4f()).translation(
+				setRandomLocation(),
+				1,
+				setRandomLocation());
+		power.setLocalTranslation(initialTranslation);
+		initialScale = (new Matrix4f()).scaling(0.5f);
+		power.setLocalScale(initialScale);
+
+		minipower = new GameObject(GameObject.root(), lightningS, powertx);
+		minipower.setLocalLocation(avatar.getLocalLocation().add(new Vector3f(1.5f, 0.0f, 0.0f)));
+		minipower.setLocalScale(new Matrix4f().scaling(1f));
+		minipower.setParent(avatar);
+		minipower.propagateTranslation(true);
+		minipower.propagateRotation(true);
+		minipower.getRenderStates().disableRendering();
+
 		// build zombie
 		zombie = new GameObject(GameObject.root(), zombieS, zombietx);
 		initialTranslation = (new Matrix4f()).translation(
@@ -281,7 +298,7 @@ public class MyGame extends VariableFrameRateGame {
 		light1.setType(LightType.SPOTLIGHT);
 		light1.setAmbient(1.0f, 1.0f, 1.0f);
 		light1.setSpecular(0, 0, 0);
-		light1.setLocation(new Vector3f((float)avatarPosX,(float) avatarPosY, (float)avatarPosZ));
+		light1.setLocation(new Vector3f((float) avatarPosX, (float) avatarPosY, (float) avatarPosZ));
 		(engine.getSceneGraph()).addLight(light1);
 	}
 
@@ -306,6 +323,8 @@ public class MyGame extends VariableFrameRateGame {
 		timerLength = ((int) (jsEngine.get("timerLength")));
 		isAxesOn = ((boolean) (jsEngine.get("isAxesOn")));
 		rotationSpeed = ((double) (jsEngine.get("rotationSpeed")));
+		speed = ((double) (jsEngine.get("speed")));
+		strength = ((int) (jsEngine.get("strength")));
 
 		(engine.getRenderSystem()).setWindowDimensions(1900, 1000);
 
@@ -323,6 +342,8 @@ public class MyGame extends VariableFrameRateGame {
 
 		rc.addTarget(lightning);
 		rc.addTarget(miniLightning);
+		rc.addTarget(power);
+		rc.addTarget(minipower);
 
 		// --------------View Port---------------------
 		(engine.getRenderSystem()).addViewport("VIEWPORT", 0.75f, 0f, 0.25f, 0.25f);
@@ -450,11 +471,11 @@ public class MyGame extends VariableFrameRateGame {
 		physicsEngine.setGravity(gravity);
 
 		// --Create Physics World--
-		float mass = 1.0f;
+		float mass = 5.0f;
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		float zomBoxSize[] = { 2f, 3f, 2f };
+		float zomBoxSize[] = { 2f, 4f, 2f };
 		float tempTValues[] = new float[16];
 		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
 		zomBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, zomBoxSize);
@@ -527,12 +548,12 @@ public class MyGame extends VariableFrameRateGame {
 
 		String healthCounterStr = Integer.toString(health);
 		String dispStr1 = "Enemy Health = " + healthCounterStr;
-		Vector3f hud1Color = new Vector3f(1, 0, 0); // red
-		Vector3f hud2Color = new Vector3f(0, 0, 1); // blue
-		Vector3f hud3Color = new Vector3f(0, 1, 0); // green
+		Vector3f redColor = new Vector3f(1, 0, 0); // red
+		Vector3f greenColor = new Vector3f(0, 1, 0); // green
+		Vector3f blueColor = new Vector3f(0, 0, 1); // blue
 
 		(engine.getHUDmanager()).setHUD1(dispStr1,
-				hud1Color,
+				redColor,
 				(int) (mainActualWidth / 2 + 10),
 				(int) (mainActualHeight - 25));
 
@@ -540,8 +561,8 @@ public class MyGame extends VariableFrameRateGame {
 		String timerStr = Integer.toString(timeLeft);
 		String dispStr2 = "Time Left = " + timerStr;
 
-		(engine.getHUDmanager()).setHUD1(dispStr2,
-				hud2Color,
+		(engine.getHUDmanager()).setHUD2(dispStr2,
+				blueColor,
 				(int) (mainRelativeLeft * mainActualWidth + 10),
 				(int) (mainRelativeBottom * mainActualHeight + 10));
 
@@ -550,14 +571,6 @@ public class MyGame extends VariableFrameRateGame {
 		float vpRelativeBottom = engine.getRenderSystem().getViewport("VIEWPORT").getRelativeBottom();
 		float vpActualWidth = engine.getRenderSystem().getViewport("VIEWPORT").getActualWidth();
 		float vpActualHeight = engine.getRenderSystem().getViewport("VIEWPORT").getActualHeight();
-
-		String avatarPos = (int) avatar.getWorldLocation().x() + ", " +
-				(int) avatar.getWorldLocation().y() + ", " +
-				(int) avatar.getWorldLocation().z();
-		(engine.getHUDmanager()).setHUD2(avatarPos,
-				hud2Color,
-				(int) (vpRelativeLeft * mainActualWidth + 10),
-				(int) (vpRelativeBottom * vpActualHeight + 10));
 
 		// Update altitude of avatar based on height map
 		Vector3f loc = avatar.getWorldLocation();
@@ -577,23 +590,7 @@ public class MyGame extends VariableFrameRateGame {
 		chaseAvatar();
 
 		// Power Up
-
-		if (powerUpTime > 0) {
-			powerUpTime -= 0.1f * elapsedTime;
-		} else {
-			powerUpTime = 0;
-			speed = 0.02;
-			miniLightning.getRenderStates().disableRendering();
-		}
-
-		if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
-			miniLightning.getRenderStates().enableRendering();
-			powerUpTime = 1000;
-			speed = 0.05;
-
-			// new big lightning spot
-			// increase avatar speed
-		}
+		updateBuffs();
 
 		im.update((float) elapsedTime);
 		orbitController.updateCameraPosition();
@@ -620,12 +617,12 @@ public class MyGame extends VariableFrameRateGame {
 			for (int j = 0; j < manifold.getNumContacts(); j++) {
 				contactPoint = manifold.getContactPoint(j);
 				if (contactPoint.getDistance() < 0.0f) {
+					updateEnemyHP();
 					System.out.println("---- hit between " + obj1 + " and " + obj2);
 					break;
 				}
 			}
 		}
-
 	}
 
 	// Lasers
@@ -680,10 +677,10 @@ public class MyGame extends VariableFrameRateGame {
 		}
 	}
 
-	// Generates random number between -10 and 10 for loc coords
+	// Generates random number between -20 and 20 for loc coords
 	private int setRandomLocation() {
 		Random r = new Random();
-		int randomNum = r.nextInt(10 + 10) - 10;
+		int randomNum = r.nextInt(20 + 20) - 20;
 		return randomNum;
 	}
 
@@ -827,7 +824,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	}
 
-	// --------------------- CHASE --------------
+	// --------------------- CHASE BEHAVIOR --------------
 	public void chaseAvatar() {
 		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
 			float time = (float) elapsedTime % 10;
@@ -838,8 +835,7 @@ public class MyGame extends VariableFrameRateGame {
 
 			chaseDirection.mul(targetLocation.x() - oldPosition.x(), targetLocation.y() - oldPosition.y(),
 					targetLocation.z() - oldPosition.z(), 0f);
-			chaseDirection.mul(.0001f * time); // increases float increases zombie speed, maybe increase with zombie
-												// killed,
+			chaseDirection.mul(.0001f * time); // increases float increases speed
 			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
 			zombie.setLocalLocation(newPosition);
 		}
@@ -851,6 +847,44 @@ public class MyGame extends VariableFrameRateGame {
 		float tempTValues[] = new float[16];
 		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
 		zomBoxP.setTransform(tempTransform);
+	}
+
+	// ---------------- DAMAGE CALCULATION ---------------
+	public void updateEnemyHP() {
+		health -= strength;
+	}
+
+	// ------------- BUFF HANDLER ---------------------
+	public void updateBuffs() {
+		// Speed buff
+		if (powerUpTime > 0) {
+			powerUpTime -= 0.1f * elapsedTime;
+		} else {
+			powerUpTime = 0;
+			speed = 0.02;
+			miniLightning.getRenderStates().disableRendering();
+		}
+
+		if (avatar.getLocalLocation().distance(lightning.getLocalLocation()) < 1.2) {
+			miniLightning.getRenderStates().enableRendering();
+			powerUpTime = 1000;
+			speed = 0.05;
+		}
+
+		// Power buff
+		if (strengthUpTime > 0) {
+			strengthUpTime -= 0.1f * elapsedTime;
+		} else {
+			strengthUpTime = 0;
+			strength = 1;
+			minipower.getRenderStates().disableRendering();
+		}
+
+		if (avatar.getLocalLocation().distance(power.getLocalLocation()) < 1.2) {
+			minipower.getRenderStates().enableRendering();
+			strengthUpTime = 1000;
+			strength = 2;
+		}
 	}
 
 	// --------------------- GETTERS -------------

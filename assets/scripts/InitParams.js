@@ -1,5 +1,5 @@
 // Paramters
-var health = 100;
+var health = 1000;
 var isAxesOn = false;
 
 // Node Controller 
@@ -8,8 +8,11 @@ var rotationSpeed = 0.001;
 // Game Timer Length
 var timerLength = 60;
 
-// Speed Script
+// Speed 
 var speed = 0.02;
+
+// Strength
+var strength = 1;
 
 // Initial Avatar 
 var avatarPosX = 0.0;
