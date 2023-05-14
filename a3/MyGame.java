@@ -66,7 +66,7 @@ public class MyGame extends VariableFrameRateGame {
 	private double lastFrameTime, currFrameTime, elapsTime;
 
 	private double startTime, prevTime, elapsedTime, deltaTime;
-	private int timerLength;
+	private int timeLeft, timerLength;
 
 	private boolean isAxesOn, toggleLights, isAvatarAlive;
 	private int sunset;
@@ -567,7 +567,7 @@ public class MyGame extends VariableFrameRateGame {
 				(int) (mainActualWidth / 2 + 10),
 				(int) (mainActualHeight - 25));
 
-		int timeLeft = timerLength - elapsTimeSec;
+		timeLeft = timerLength - elapsTimeSec;
 		if (timeLeft < 0) {
 			timeLeft = 0;
 		}
@@ -607,7 +607,7 @@ public class MyGame extends VariableFrameRateGame {
 		updateBuffs();
 
 		// Lose Condition
-		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) <= 1) {
+		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) <= 1 || timeLeft == 0) {
 			avatar.getRenderStates().disableRendering();
 			toggleLightOff();
 			alienS.stopAnimation();
