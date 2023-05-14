@@ -468,7 +468,7 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		float alienBoxSize[] = { 2f, 4f, 2f };
+		float alienBoxSize[] = { 5f, 5f, 5f };
 		float tempTValues[] = new float[16];
 		tempTransform = toDoubleArray(alien.getLocalTranslation().get(tempTValues));
 		alienBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, alienBoxSize);
