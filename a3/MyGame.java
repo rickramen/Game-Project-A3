@@ -438,7 +438,7 @@ public class MyGame extends VariableFrameRateGame {
 				net.java.games.input.Component.Identifier.Button._2, toggleLightAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllGamepads(
-				net.java.games.input.Component.Identifier.Button._7, toggleAxesAction,
+				net.java.games.input.Component.Identifier.Button._3, toggleAxesAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllGamepads(
 				net.java.games.input.Component.Identifier.Axis.Y, fwdBwdAction,
