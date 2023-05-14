@@ -23,8 +23,8 @@ var avatarPosY = 1.0;
 var avatarPosZ = 0.0;
 var avatarScale = 0.15; 
 
-// Zombie
-var zombieScale = .25;
+// Alien
+var alienScale = .25;
 
 // Terrain
 var terrainLocX = 0.0;

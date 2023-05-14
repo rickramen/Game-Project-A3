@@ -73,7 +73,7 @@ public class MyGame extends VariableFrameRateGame {
 	private Light light1;
 
 	private double avatarPosX, avatarPosY, avatarPosZ, avatarScale;
-	private double zombieScale;
+	private double alienScale;
 	private double rotationSpeed;
 	private double terrainLocX, terrainLocY, terrainLocZ, terrainScaleX, terrainScaleY, terrainScaleZ;
 
@@ -86,10 +86,10 @@ public class MyGame extends VariableFrameRateGame {
 	private TextureImage terrtx;
 	private TextureImage hills;
 
-	private GameObject avatar, zombie;
-	private AnimatedShape zombieS;
+	private GameObject avatar, alien;
+	private AnimatedShape alienS;
 	private ObjShape ghostS, robotS;
-	private TextureImage ghostT, zombietx, robottx, robottx2;
+	private TextureImage ghostT, alientx, robottx, robottx2;
 
 	private GameObject lightning, miniLightning, power, minipower;
 	private ObjShape lightningS;
@@ -109,11 +109,11 @@ public class MyGame extends VariableFrameRateGame {
 
 	// Physics Engine
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject zomBoxP;
+	private PhysicsObject alienBoxP;
 
 	// Sound
 	private IAudioManager audioMgr;
-	private Sound ambientSound, zombieSound, laserSound;
+	private Sound ambientSound, alienSound, laserSound;
 
 	private boolean running = true;
 	private float vals[] = new float[16];
@@ -151,10 +151,10 @@ public class MyGame extends VariableFrameRateGame {
 
 		terrS = new TerrainPlane(1500);
 
-		zombieS = new AnimatedShape("zombie.rkm", "zombie.rks");
-		zombieS.loadAnimation("WALK", "zombie_walk.rka");
+		alienS = new AnimatedShape("alien.rkm", "alien.rks");
+		alienS.loadAnimation("WALK", "alien_walk.rka");
 		robotS = new ImportedModel("robot2.obj");
-		ghostS = new ImportedModel("zombie.obj");
+		ghostS = new ImportedModel("alien.obj");
 
 		lightningS = new ImportedModel("speed.obj");
 
@@ -167,10 +167,10 @@ public class MyGame extends VariableFrameRateGame {
 		terrtx = new TextureImage("foliage.png");
 		hills = new TextureImage("heightmap.png");
 
-		zombietx = new TextureImage("zombie.png");
+		alientx = new TextureImage("alien.png");
 		robottx = new TextureImage("robotunwraped.png");
 		robottx2 = new TextureImage("robotunwraped2.png");
-		ghostT = new TextureImage("zombie.png");
+		ghostT = new TextureImage("alien.png");
 		lightningtx = new TextureImage("speed.png");
 		powertx = new TextureImage("power.png");
 
@@ -202,7 +202,7 @@ public class MyGame extends VariableFrameRateGame {
 		avatarPosY = ((double) (jsEngine.get("avatarPosY")));
 		avatarPosZ = ((double) (jsEngine.get("avatarPosZ")));
 		avatarScale = ((double) (jsEngine.get("avatarScale")));
-		zombieScale = ((double) (jsEngine.get("zombieScale")));
+		alienScale = ((double) (jsEngine.get("alienScale")));
 		terrainLocX = ((double) (jsEngine.get("terrainLocX")));
 		terrainLocY = ((double) (jsEngine.get("terrainLocY")));
 		terrainLocZ = ((double) (jsEngine.get("terrainLocZ")));
@@ -276,16 +276,16 @@ public class MyGame extends VariableFrameRateGame {
 		minipower.propagateRotation(true);
 		minipower.getRenderStates().disableRendering();
 
-		// build zombie
-		zombie = new GameObject(GameObject.root(), zombieS, zombietx);
+		// build alien
+		alien = new GameObject(GameObject.root(), alienS, alientx);
 		initialTranslation = (new Matrix4f()).translation(
 				setRandomLocation(),
 				0,
 				setRandomLocation());
-		zombie.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling((float) zombieScale);
-		zombie.setLocalScale(initialScale);
-		zombieS.playAnimation("WALK", 0.3f, AnimatedShape.EndType.LOOP, 0);
+		alien.setLocalTranslation(initialTranslation);
+		initialScale = (new Matrix4f()).scaling((float) alienScale);
+		alien.setLocalScale(initialScale);
+		alienS.playAnimation("WALK", 0.3f, AnimatedShape.EndType.LOOP, 0);
 
 	}
 
@@ -480,11 +480,11 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		float zomBoxSize[] = { 2f, 4f, 2f };
+		float alienBoxSize[] = { 2f, 4f, 2f };
 		float tempTValues[] = new float[16];
-		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
-		zomBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, zomBoxSize);
-		zombie.setPhysicsObject(zomBoxP);
+		tempTransform = toDoubleArray(alien.getLocalTranslation().get(tempTValues));
+		alienBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, alienBoxSize);
+		alien.setPhysicsObject(alienBoxP);
 
 		updateProjectile();
 
@@ -507,7 +507,7 @@ public class MyGame extends VariableFrameRateGame {
 		updateProjectile();
 
 		// Update Sound
-		zombieSound.setLocation(zombie.getWorldLocation());
+		alienSound.setLocation(alien.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
 		laserSound.setLocation(avatar.getWorldLocation());
 
@@ -524,8 +524,8 @@ public class MyGame extends VariableFrameRateGame {
 			toggleLights = false;
 		}
 
-		// Update zombie physics
-		updateZomBoxLoc();
+		// Update alien physics
+		updateAlienBoxLoc();
 
 		// Update Physics
 		if (running = true) {
@@ -593,10 +593,10 @@ public class MyGame extends VariableFrameRateGame {
 		float height = terr.getHeight(loc.x(), loc.z());
 		avatar.setLocalLocation(new Vector3f(loc.x(), height, loc.z()));
 
-		Vector3f zombieLoc = zombie.getWorldLocation();
-		float zombieHeight = terr.getHeight(zombieLoc.x(), zombieLoc.z());
+		Vector3f alienLoc = alien.getWorldLocation();
+		float alienHeight = terr.getHeight(alienLoc.x(), alienLoc.z());
 
-		zombie.setLocalLocation(new Vector3f(zombieLoc.x(), zombieHeight, zombieLoc.z()));
+		alien.setLocalLocation(new Vector3f(alienLoc.x(), alienHeight, alienLoc.z()));
 
 		// Update Lights
 		light1.setLocation(avatar.getWorldLocation());
@@ -608,9 +608,11 @@ public class MyGame extends VariableFrameRateGame {
 		// Power Up
 		updateBuffs();
 
+
+
 		im.update((float) elapsedTime);
 		orbitController.updateCameraPosition();
-		zombieS.updateAnimation();
+		alienS.updateAnimation();
 		processNetworking((float) elapsedTime);
 	}
 
@@ -797,20 +799,20 @@ public class MyGame extends VariableFrameRateGame {
 			return;
 		}
 
-		resource1 = audioMgr.createAudioResource("assets/sounds/zombie.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource1 = audioMgr.createAudioResource("assets/sounds/alien.wav", AudioResourceType.AUDIO_SAMPLE);
 		resource2 = audioMgr.createAudioResource("assets/sounds/ambient.wav", AudioResourceType.AUDIO_STREAM);
 		resource3 = audioMgr.createAudioResource("assets/sounds/laser.wav", AudioResourceType.AUDIO_SAMPLE);
-		zombieSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		alienSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
 		ambientSound = new Sound(resource2, SoundType.SOUND_EFFECT, 50, true);
 		laserSound = new Sound(resource3, SoundType.SOUND_EFFECT, 50, false);
 
-		zombieSound.initialize(audioMgr);
+		alienSound.initialize(audioMgr);
 		ambientSound.initialize(audioMgr);
 		laserSound.initialize(audioMgr);
 
-		zombieSound.setMaxDistance(10.0f);
-		zombieSound.setMinDistance(0.5f);
-		zombieSound.setRollOff(5.0f);
+		alienSound.setMaxDistance(10.0f);
+		alienSound.setMinDistance(0.5f);
+		alienSound.setRollOff(5.0f);
 
 		ambientSound.setMaxDistance(10.0f);
 		ambientSound.setMinDistance(0.5f);
@@ -820,13 +822,13 @@ public class MyGame extends VariableFrameRateGame {
 		laserSound.setMinDistance(0.5f);
 		laserSound.setRollOff(5.0f);
 
-		zombieSound.setLocation(zombie.getWorldLocation());
+		alienSound.setLocation(alien.getWorldLocation());
 		ambientSound.setLocation(terr.getWorldLocation());
 		laserSound.setLocation(avatar.getWorldLocation());
 
 		setEarParameters();
 
-		zombieSound.play();
+		alienSound.play();
 		ambientSound.play();
 
 	}
@@ -853,10 +855,10 @@ public class MyGame extends VariableFrameRateGame {
 
 	// --------------------- CHASE BEHAVIOR --------------
 	public void chaseAvatar() {
-		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
+		if (alien.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
 			float time = (float) elapsedTime % 10;
-			zombie.lookAt(avatar);
-			Vector3f oldPosition = zombie.getWorldLocation();
+			alien.lookAt(avatar);
+			Vector3f oldPosition = alien.getWorldLocation();
 			Vector3f targetLocation = avatar.getLocalLocation();
 			Vector4f chaseDirection = new Vector4f(1f, 1f, 1f, 1f);
 
@@ -864,16 +866,16 @@ public class MyGame extends VariableFrameRateGame {
 					targetLocation.z() - oldPosition.z(), 0f);
 			chaseDirection.mul(.0001f * time); // increases float increases speed
 			Vector3f newPosition = oldPosition.add(chaseDirection.x(), chaseDirection.y(), chaseDirection.z());
-			zombie.setLocalLocation(newPosition);
+			alien.setLocalLocation(newPosition);
 		}
 	}
 
-	// --------------UPDATE ZOMBOX POSITION -------------
-	public void updateZomBoxLoc() {
+	// --------------UPDATE ALIENBOX POSITION -------------
+	public void updateAlienBoxLoc() {
 		double[] tempTransform;
 		float tempTValues[] = new float[16];
-		tempTransform = toDoubleArray(zombie.getLocalTranslation().get(tempTValues));
-		zomBoxP.setTransform(tempTransform);
+		tempTransform = toDoubleArray(alien.getLocalTranslation().get(tempTValues));
+		alienBoxP.setTransform(tempTransform);
 	}
 
 	// ---------------- DAMAGE CALCULATION ---------------
@@ -937,11 +939,11 @@ public class MyGame extends VariableFrameRateGame {
 	}
 
 	public ObjShape getNPCshape() {
-		return zombieS;
+		return alienS;
 	}
 
 	public TextureImage getNPCtexture() {
-		return zombietx;
+		return alientx;
 	}
 
 	public double getSpeed() {
