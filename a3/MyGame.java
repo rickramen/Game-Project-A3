@@ -154,7 +154,7 @@ public class MyGame extends VariableFrameRateGame {
 		alienS = new AnimatedShape("alien.rkm", "alien.rks");
 		alienS.loadAnimation("WALK", "alien_walk.rka");
 		robotS = new ImportedModel("robot2.obj");
-		ghostS = new ImportedModel("alien.obj");
+		ghostS = new ImportedModel("robot2.obj");
 
 		lightningS = new ImportedModel("speed.obj");
 
@@ -170,7 +170,7 @@ public class MyGame extends VariableFrameRateGame {
 		alientx = new TextureImage("alien.png");
 		robottx = new TextureImage("robotunwraped.png");
 		robottx2 = new TextureImage("robotunwraped2.png");
-		ghostT = new TextureImage("alien.png");
+		ghostT = new TextureImage("robotunwraped.png");
 		lightningtx = new TextureImage("speed.png");
 		powertx = new TextureImage("power.png");
 
@@ -468,7 +468,7 @@ public class MyGame extends VariableFrameRateGame {
 		float up[] = { 0, 1, 0 };
 		double[] tempTransform;
 
-		float alienBoxSize[] = { 5f, 5f, 5f };
+		float alienBoxSize[] = { 4f, 5f, 4f };
 		float tempTValues[] = new float[16];
 		tempTransform = toDoubleArray(alien.getLocalTranslation().get(tempTValues));
 		alienBoxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, tempTransform, alienBoxSize);
