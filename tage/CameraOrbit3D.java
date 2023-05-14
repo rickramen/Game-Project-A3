@@ -36,6 +36,7 @@ public class CameraOrbit3D {
         updateCameraPosition();
     }
 
+    /** Assigns Orbit Camera actions to keyboard / controller using input manager */
     private void setupInputs() {
         InputManager im = engine.getInputManager();
         OrbitAzimuthAction azmAction = new OrbitAzimuthAction();
@@ -80,9 +81,11 @@ public class CameraOrbit3D {
                 InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
     }
 
-    // Compute the camera’s azimuth, elevation, and distance, relative to
-    // the target in spherical coordinates, then convert to world Cartesian
-    // coordinates and set the camera position from that.
+    /**
+     * Compute the camera’s azimuth, elevation, and distance, relative to
+     * the target in spherical coordinates, then convert to world Cartesian
+     * coordinates and set the camera position from that.
+     */
     public void updateCameraPosition() {
         Vector3f avatarRot = avatar.getWorldForwardVector();
         double avatarAngle = Math
@@ -97,6 +100,7 @@ public class CameraOrbit3D {
         camera.lookAt(avatar);
     }
 
+    /** Updates the orbit camera azimuth based on controller X axis value */
     private class OrbitAzimuthAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float rotAmount;
@@ -114,6 +118,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Updates orbit camera's azimuth to the left */
     private class OrbitAzimuthLeftAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float rotAmount;
@@ -124,6 +129,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Updates orbit camera's azimuth to the right */
     private class OrbitAzimuthRightAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float rotAmount;
@@ -134,6 +140,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Updates the orbit camera elevation based on controller Y axis value */
     private class OrbitElevationAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float pitchAmount;
@@ -154,6 +161,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Increases the orbit camera elevation */
     private class OrbitElevationUpAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float pitchAmount;
@@ -166,6 +174,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** decreases the orbit camera elevation */
     private class OrbitElevationDownAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float pitchAmount;
@@ -178,6 +187,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Controls the zoom distance based on Z axis value of controller */
     private class OrbitZoomAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float zoomAmount;
@@ -197,6 +207,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Increases the orbit camera zoom value */
     private class OrbitZoomUpAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float zoomAmount;
@@ -209,6 +220,7 @@ public class CameraOrbit3D {
         }
     }
 
+    /** Decreases the orbit camera zoom value */
     private class OrbitZoomDownAction extends AbstractInputAction {
         public void performAction(float time, Event e) {
             float zoomAmount;
