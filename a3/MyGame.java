@@ -68,7 +68,7 @@ public class MyGame extends VariableFrameRateGame {
 	private double startTime, prevTime, elapsedTime, deltaTime;
 	private int timerLength;
 
-	private boolean isAxesOn;
+	private boolean isAxesOn, toggleLights;
 	private int sunset;
 	private Light light1;
 
@@ -325,6 +325,7 @@ public class MyGame extends VariableFrameRateGame {
 		rotationSpeed = ((double) (jsEngine.get("rotationSpeed")));
 		speed = ((double) (jsEngine.get("speed")));
 		strength = ((int) (jsEngine.get("strength")));
+		toggleLights = ((boolean) (jsEngine.get("toggleLights")));
 
 		(engine.getRenderSystem()).setWindowDimensions(1900, 1000);
 
@@ -387,6 +388,8 @@ public class MyGame extends VariableFrameRateGame {
 		Avatar1Action avatar1Action = new Avatar1Action(this);
 		Avatar2Action avatar2Action = new Avatar2Action(this);
 
+		ToggleLightAction toggleLightAction = new ToggleLightAction(this);
+
 		// Keyboard
 		im.associateActionWithAllKeyboards(
 				net.java.games.input.Component.Identifier.Key._1, toggleAxesAction,
@@ -411,6 +414,8 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.Z, avatar2Action,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.C, toggleLightAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		im.associateActionWithAllKeyboards(
@@ -508,6 +513,17 @@ public class MyGame extends VariableFrameRateGame {
 
 		setEarParameters();
 
+		// Update Lights
+		if (toggleLights) {
+			light1.setLocation(avatar.getWorldLocation());
+			light1.setDirection(avatar.getWorldForwardVector());
+			light1.setDiffuse(1, 1, 1);
+			toggleLights = true;
+		} else {
+			light1.setDiffuse(0, 0, 0);
+			toggleLights = false;
+		}
+
 		// Update zombie physics
 		updateZomBoxLoc();
 
@@ -597,6 +613,8 @@ public class MyGame extends VariableFrameRateGame {
 		zombieS.updateAnimation();
 		processNetworking((float) elapsedTime);
 	}
+
+	// Update Lights
 
 	// Physics Engine Collision Check
 	private void checkForCollisions() {
@@ -824,6 +842,15 @@ public class MyGame extends VariableFrameRateGame {
 
 	}
 
+	// -------------- TOGGLE LIGHTS ----------------
+	public void toggleLightOn() {
+		toggleLights = true;
+	}
+
+	public void toggleLightOff() {
+		toggleLights = false;
+	}
+
 	// --------------------- CHASE BEHAVIOR --------------
 	public void chaseAvatar() {
 		if (zombie.getWorldLocation().distance(avatar.getLocalLocation()) > 1) {
@@ -927,6 +954,10 @@ public class MyGame extends VariableFrameRateGame {
 
 	public TextureImage getAvatar2texture() {
 		return robottx2;
+	}
+
+	public boolean isLightOn() {
+		return toggleLights;
 	}
 
 	// -------------PHYSICS UTILITY -------------

@@ -1,6 +1,9 @@
 // Paramters
 var health = 1000;
+
 var isAxesOn = false;
+
+var toggleLights = true;
 
 // Node Controller 
 var rotationSpeed = 0.001;
